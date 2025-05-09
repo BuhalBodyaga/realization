@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавить преподавателя{% endblock %}
+
+{% block content %}
+
+<h2>Добавить нагрузку на департамент</h2>
+
+<form method="post">
+  {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a href="{% url 'workload_department_list' %}" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

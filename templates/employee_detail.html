@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Преподаватель{% endblock %}
+
+{% block content %}
+{% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
+<a href="{% url 'employee_update' employee.pk %}" class="btn btn-warning">Редактировать</a>
+<a href="{% url 'employee_delete' employee.pk %}" class="btn btn-danger">Удалить</a>
+{% endif %}
+<h1>{{ employee.surname }} {{ employee.first_name }} {{ employee.second_name }}</h1>
+
+<ul class="list-group mb-3">
+    <li class="list-group-item"><strong>Ранг:</strong> {{ employee.rank.type }}</li>
+    <li class="list-group-item"><strong>Учёная степень:</strong> {{ employee.degree.type }}</li>
+    <li class="list-group-item"><strong>Должность:</strong> {{ employee.post.type }}</li>
+    <li class="list-group-item"><strong>Ставка:</strong> {{ employee.rate.rate_value }}</li>
+</ul>
+
+<a class="btn btn-secondary" href="/employees/">← Назад к списку преподавателей</a>
+{% endblock %}

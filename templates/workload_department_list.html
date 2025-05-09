@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
+<a href="{% url 'workload_department_create' %}" class="btn btn-primary mb-3">Добавить дисциплину</a>
+{% endif %}
+    <h2>Нагрузка на департамент</h2>
+
+    <h4>Отчет по дисциплинам</h4>
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Дисциплина</th>
+                <th>Выделено часов</th>
+                <th>Распределено часов</th>
+                <th>Осталось распределить</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in report %}
+            <tr class="{% if item.remaining_hours == 0 %}table-success{% else %}table-warning{% endif %}">
+                <td>{{ item.discipline }}</td>
+                <td>{{ item.total_hours_department }}</td>
+                <td>{{ item.total_hours_teachers }}</td>
+                <td>{{ item.remaining_hours }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">Нет данных</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h4>Подробная нагрузка по дисциплинам и подгруппам</h4>
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Дисциплина</th>
+                <th>Тип нагрузки</th>
+                <th>Группа</th>
+                <th>Семестр</th>
+                <th>Подгруппа</th>
+                <th>Часы</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for wd in workload_departments %}
+            <tr>
+                <td>{{ wd.workload.disciplines }}</td>
+                <td>{{ wd.workload.load_types }}</td>
+                <td>{{ wd.workload.groups }}</td>
+                <td>{{ wd.workload.semesters }}</td>
+                <td>{{ wd.subgroups }}</td>
+                <td>{{ wd.hours }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">Нагрузка не найдена</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

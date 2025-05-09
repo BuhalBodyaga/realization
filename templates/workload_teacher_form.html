@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Распределение нагрузки преподавателю</h2>
+    <!-- Выводим все ошибки формы здесь -->
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.employees.label_tag }}
+            {{ form.employees }}
+        </div>
+        <div class="mb-3">
+            {{ form.workload.label_tag }}
+            {{ form.workload }}
+        </div>
+        <div class="mb-3">
+            {{ form.subgroups.label_tag }}
+            {{ form.subgroups }}
+        </div>
+        <div class="mb-3">
+            {{ form.hours.label_tag }}
+            {{ form.hours }}
+        </div>
+        <div id="hours-hint" class="form-text text-primary mb-3"></div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
+<script>
+    // При загрузке страницы навешиваем обработчики
+    document.addEventListener('DOMContentLoaded', function() {
+        const employeeSelect = document.getElementById('id_employees');
+        const workloadSelect = document.getElementById('id_workload');
+        const subgroupSelect = document.getElementById('id_subgroups');
+        const hoursHint = document.getElementById('hours-hint');
+
+        async function updateHoursHint() {
+            const employeeId = employeeSelect.value;
+            const workloadId = workloadSelect.value;
+            const subgroupId = subgroupSelect.value;
+
+            if (employeeId && workloadId && subgroupId) {
+                try {
+                    const response = await fetch(`/get-available-hours/?employee=${employeeId}&workload=${workloadId}&subgroup=${subgroupId}`);
+                    const data = await response.json();
+                    if (data.available_hours !== undefined) {
+                        hoursHint.innerText = `Максимум доступно: ${data.available_hours} часов`;
+                    } else {
+                        hoursHint.innerText = '';
+                    }
+                } catch (error) {
+                    console.error('Ошибка при получении часов:', error);
+                }
+            } else {
+                hoursHint.innerText = '';
+            }
+        }
+
+        employeeSelect.addEventListener('change', updateHoursHint);
+        workloadSelect.addEventListener('change', updateHoursHint);
+        subgroupSelect.addEventListener('change', updateHoursHint);
+    });
+</script>
+{% endblock %}

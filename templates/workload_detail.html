@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Нагрузка{% endblock %}
+
+{% block content %}
+{% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
+<a href="{% url 'workload_update' workload.pk %}" class="btn btn-warning">Редактировать</a>
+<a href="{% url 'workload_delete' workload.pk %}" class="btn btn-danger">Удалить</a>
+{% endif %}
+<h1>Нагрузка</h1>
+
+<ul class="list-group mb-3">
+    <li class="list-group-item"><strong>Дисциплина:</strong> {{ workload.disciplines.name_of_discipline }}</li>
+    <li class="list-group-item"><strong>Группа:</strong> {{ workload.groups.name }}</li>
+    <li class="list-group-item"><strong>Семестр:</strong> {{ workload.semesters.number }}</li>
+    <li class="list-group-item"><strong>Тип нагрузки:</strong> {{ workload.load_types.type }}</li>
+</ul>
+
+<a class="btn btn-secondary" href="/workloads/">← Назад к списку нагрузок</a>
+{% endblock %}

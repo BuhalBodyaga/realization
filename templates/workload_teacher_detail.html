@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Распределение нагрузки{% endblock %}
+
+{% block content %}
+{% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
+<a href="{% url 'workload_teacher_update' workload_teacher.pk %}" class="btn btn-warning">Редактировать</a>
+<a href="{% url 'workload_teacher_delete' workload_teacher.pk %}" class="btn btn-danger">Удалить</a>
+{% endif %}
+
+<h1>Распределение нагрузки</h1>
+
+<ul class="list-group mb-3">
+    <li class="list-group-item"><strong>Преподаватель:</strong> {{ workload_teacher.employees }}</li>
+    <li class="list-group-item"><strong>Дисциплина:</strong> {{ workload_teacher.workload.disciplines.name_of_discipline }}</li>
+    <li class="list-group-item"><strong>Тип нагрузки:</strong> {{ workload_teacher.workload.load_types.type }}</li>
+    <li class="list-group-item"><strong>Группа:</strong> {{ workload_teacher.workload.groups.name }}</li>
+    <li class="list-group-item"><strong>Семестр:</strong> {{ workload_teacher.workload.semesters.number }}</li>
+    <li class="list-group-item"><strong>Подгруппа:</strong> {{ workload_teacher.subgroups }}</li>
+    <li class="list-group-item"><strong>Часы:</strong> {{ workload_teacher.hours }}</li>
+</ul>
+
+<a class="btn btn-secondary" href="{% url 'workload_teacher_list' %}">← Назад к списку распределения</a>
+{% endblock %}
