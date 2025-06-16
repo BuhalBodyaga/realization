@@ -18,7 +18,8 @@ class EmployeeForm(forms.ModelForm):
             "degree",
             "post",
             "rate",
-            "discipline_types",  # ← добавили это поле
+            "disciplines",
+            "main_discipline",
         ]
         widgets = {
             "first_name": forms.TextInput(attrs={"class": "form-control"}),
@@ -28,12 +29,24 @@ class EmployeeForm(forms.ModelForm):
             "degree": forms.Select(attrs={"class": "form-select"}),
             "post": forms.Select(attrs={"class": "form-select"}),
             "rate": forms.Select(attrs={"class": "form-select"}),
-            "discipline_types": forms.SelectMultiple(attrs={"class": "form-select"}),
+            "disciplines": forms.SelectMultiple(attrs={"class": "form-select"}),
+            "main_discipline": forms.Select(attrs={"class": "form-select"}),
         }
         labels = {
-            "discipline_types": "Типы дисциплин",
+            "disciplines": "Дисциплины",
+            "main_discipline": "Основная дисциплина",
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        disciplines = cleaned_data.get("disciplines")
+        main_discipline = cleaned_data.get("main_discipline")
+        if main_discipline and disciplines and main_discipline not in disciplines.all():
+            self.add_error(
+                "main_discipline",
+                "Основная дисциплина должна быть выбрана среди дисциплин, которые может вести преподаватель.",
+            )
+        return cleaned_data    
 
 class DisciplineForm(forms.ModelForm):
     class Meta:
@@ -90,10 +103,10 @@ class WorkloadTeacherForm(forms.ModelForm):
         workload = cleaned_data.get('workload')
 
         if employee and workload:
-            discipline_type = workload.disciplines.types_of_discipline
-            if discipline_type not in employee.discipline_types.all():
+            discipline = workload.disciplines
+            if discipline not in employee.disciplines.all():
                 raise ValidationError({
-                    'employees': f"Преподаватель {employee} не может вести дисциплину типа '{discipline_type}'."
+                    'employees': f"Преподаватель {employee} не может вести дисциплину '{discipline}'."
                 })
 
 

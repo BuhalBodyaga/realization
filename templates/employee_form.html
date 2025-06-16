@@ -30,10 +30,13 @@
             {{ form.rate.label_tag }} {{ form.rate }}
         </div>
         <div class="mb-3">
-            {{ form.discipline_types.label_tag }} {{ form.discipline_types }}
+            {{ form.disciplines.label_tag }} {{ form.disciplines }}
             <div class="form-text">Удерживайте Ctrl (Cmd на Mac), чтобы выбрать несколько.</div>
         </div>
-
+        <div class="mb-3">
+            {{ form.main_discipline.label_tag }} {{ form.main_discipline }}
+            <div class="form-text">Основная дисциплина должна быть выбрана из списка выше.</div>
+        </div>
         <button type="submit" class="btn btn-success">Сохранить</button>
         <a href="{% url 'employee_list' %}" class="btn btn-secondary">Отмена</a>
     </form>
