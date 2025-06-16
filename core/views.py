@@ -20,17 +20,21 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
 from django.db.models import Sum
 
+
 def is_director_or_admin(user):
-    return user.groups.filter(name='Директор департамента').exists() or user.is_superuser
+    return (
+        user.groups.filter(name="Директор департамента").exists() or user.is_superuser
+    )
 
 
 def home(request):
-    return render(request, 'home.html')
+    return render(request, "home.html")
+
 
 def get_available_hours(request):
-    employee_id = request.GET.get('employee')
-    workload_id = request.GET.get('workload')
-    subgroup_id = request.GET.get('subgroup')
+    employee_id = request.GET.get("employee")
+    workload_id = request.GET.get("workload")
+    subgroup_id = request.GET.get("subgroup")
 
     available_hours = None
 
@@ -38,15 +42,19 @@ def get_available_hours(request):
         try:
             employee = Employee.objects.get(id=employee_id)
 
-            department_hours = WorkloadDepartment.objects.filter(
-                workload_id=workload_id,
-                subgroups_id=subgroup_id
-            ).aggregate(Sum('hours'))['hours__sum'] or 0
+            department_hours = (
+                WorkloadDepartment.objects.filter(
+                    workload_id=workload_id, subgroups_id=subgroup_id
+                ).aggregate(Sum("hours"))["hours__sum"]
+                or 0
+            )
 
-            teacher_hours_existing = WorkloadTeacher.objects.filter(
-                workload_id=workload_id,
-                subgroups_id=subgroup_id
-            ).aggregate(Sum('hours'))['hours__sum'] or 0
+            teacher_hours_existing = (
+                WorkloadTeacher.objects.filter(
+                    workload_id=workload_id, subgroups_id=subgroup_id
+                ).aggregate(Sum("hours"))["hours__sum"]
+                or 0
+            )
 
             workload_free_hours = department_hours - teacher_hours_existing
 
@@ -55,9 +63,12 @@ def get_available_hours(request):
             base_hours = 900
             allowed_hours = rate * base_hours
 
-            teacher_total_hours = WorkloadTeacher.objects.filter(
-                employees=employee
-            ).aggregate(Sum('hours'))['hours__sum'] or 0
+            teacher_total_hours = (
+                WorkloadTeacher.objects.filter(employees=employee).aggregate(
+                    Sum("hours")
+                )["hours__sum"]
+                or 0
+            )
 
             rate_free_hours = allowed_hours - teacher_total_hours
 
@@ -66,210 +77,220 @@ def get_available_hours(request):
         except Employee.DoesNotExist:
             pass
 
-    return JsonResponse({'available_hours': available_hours})
-
-
+    return JsonResponse({"available_hours": available_hours})
 
 
 def workload_teacher_detail(request, pk):
     obj = get_object_or_404(WorkloadTeacher, pk=pk)
-    return render(request, 'workload_teacher_detail.html', {'workload_teacher': obj})
+    return render(request, "workload_teacher_detail.html", {"workload_teacher": obj})
 
 
 @login_required
 def workload_teacher_list(request):
-    workload_teachers = WorkloadTeacher.objects.select_related('employees', 'workload', 'subgroups')
-    return render(request, 'workload_teacher_list.html', {'workload_teachers': workload_teachers})
+    workload_teachers = WorkloadTeacher.objects.select_related(
+        "employees", "workload", "subgroups"
+    )
+    return render(
+        request, "workload_teacher_list.html", {"workload_teachers": workload_teachers}
+    )
 
 
 @login_required
 @user_passes_test(is_director_or_admin)
 def workload_teacher_create(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = WorkloadTeacherForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Нагрузка преподавателя успешно добавлена!")
-            return redirect('workload_teacher_list')  # потом сделаем страницу со списком распределений
+            return redirect(
+                "workload_teacher_list"
+            )  # потом сделаем страницу со списком распределений
     else:
         form = WorkloadTeacherForm()
-    return render(request, 'workload_teacher_form.html', {'form': form})
+    return render(request, "workload_teacher_form.html", {"form": form})
 
 
 def workload_teacher_update(request, pk):
     workload = get_object_or_404(WorkloadTeacher, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         form = WorkloadTeacherForm(request.POST, instance=workload)
         if form.is_valid():
             form.save()
             messages.success(request, "Нагрузка преподавателя успешно обновлена!")
-            return redirect('workload_teacher_list')  # замените на свой url
+            return redirect("workload_teacher_list")  # замените на свой url
     else:
         form = WorkloadTeacherForm(instance=workload)
-    return render(request, 'workload_teacher_form.html', {'form': form})
+    return render(request, "workload_teacher_form.html", {"form": form})
 
 
 def workload_teacher_delete(request, pk):
     workload = get_object_or_404(WorkloadTeacher, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         workload.delete()
         messages.success(request, "Нагрузка преподавателя успешно удалена!")
-        return redirect('workload_teacher_list')
-    return render(request, 'workload_teacher_confirm_delete.html', {'object': workload, 'type': 'преподавателя'})
+        return redirect("workload_teacher_list")
+    return render(
+        request,
+        "workload_teacher_confirm_delete.html",
+        {"object": workload, "type": "преподавателя"},
+    )
 
 
 def employee_list(request):
     employees = Employee.objects.all()
-    return render(request, 'employee_list.html', {'employees': employees})
+    return render(request, "employee_list.html", {"employees": employees})
 
 
 def employee_detail(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
-    return render(request, 'employee_detail.html', {'employee': employee})
+    return render(request, "employee_detail.html", {"employee": employee})
 
 
 @login_required
 @user_passes_test(is_director_or_admin)
 def employee_create(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = EmployeeForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Преподаватель успешно добавлен!")
-            return redirect('employee_list')
+            return redirect("employee_list")
     else:
         form = EmployeeForm()
-    return render(request, 'employee_form.html', {'form': form})
+    return render(request, "employee_form.html", {"form": form})
 
 
 @login_required
 @user_passes_test(is_director_or_admin)
 def employee_update(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         form = EmployeeForm(request.POST, instance=employee)
         if form.is_valid():
             form.save()
             messages.success(request, "Преподаватель успешно обновлен!")
-            return redirect('employee_list')
+            return redirect("employee_list")
     else:
         form = EmployeeForm(instance=employee)
-    return render(request, 'employee_form.html', {'form': form})
+    return render(request, "employee_form.html", {"form": form})
 
 
 @login_required
 @user_passes_test(is_director_or_admin)
 def employee_delete(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         employee.delete()
         messages.success(request, "Преподаватель успешно удален!")
-        return redirect('employee_list')
-    return render(request, 'employee_confirm_delete.html', {'employee': employee})
+        return redirect("employee_list")
+    return render(request, "employee_confirm_delete.html", {"employee": employee})
 
 
 def discipline_list(request):
     disciplines = Discipline.objects.all()
-    return render(request, 'discipline_list.html', {'disciplines': disciplines})
+    return render(request, "discipline_list.html", {"disciplines": disciplines})
 
 
 def discipline_detail(request, pk):
     discipline = get_object_or_404(Discipline, pk=pk)
-    return render(request, 'discipline_detail.html', {'discipline': discipline})
+    return render(request, "discipline_detail.html", {"discipline": discipline})
 
 
 @login_required
 @user_passes_test(is_director_or_admin)
 def discipline_create(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = DisciplineForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Дисциплина успешно добавлена!")
-            return redirect('discipline_list')
+            return redirect("discipline_list")
     else:
         form = DisciplineForm()
-    return render(request, 'discipline_form.html', {'form': form})
+    return render(request, "discipline_form.html", {"form": form})
 
 
 @login_required
 @user_passes_test(is_director_or_admin)
 def discipline_update(request, pk):
     discipline = get_object_or_404(Discipline, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         form = DisciplineForm(request.POST, instance=discipline)
         if form.is_valid():
             form.save()
             messages.success(request, "Дисциплина успешно обновлена!")
-            return redirect('discipline_list')
+            return redirect("discipline_list")
     else:
         form = DisciplineForm(instance=discipline)
-    return render(request, 'discipline_form.html', {'form': form})
+    return render(request, "discipline_form.html", {"form": form})
 
 
 @login_required
 @user_passes_test(is_director_or_admin)
 def discipline_delete(request, pk):
     discipline = get_object_or_404(Discipline, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         discipline.delete()
         messages.success(request, "Дисциплина успешно удалена!")
-        return redirect('discipline_list')
-    return render(request, 'discipline_confirm_delete.html', {'discipline': discipline})
+        return redirect("discipline_list")
+    return render(request, "discipline_confirm_delete.html", {"discipline": discipline})
 
 
 def workload_list(request):
     workloads = Workload.objects.all()
-    return render(request, 'workload_list.html', {'workloads': workloads})
+    return render(request, "workload_list.html", {"workloads": workloads})
 
 
 def workload_detail(request, pk):
     workload = get_object_or_404(Workload, pk=pk)
-    return render(request, 'workload_detail.html', {'workload': workload})
+    return render(request, "workload_detail.html", {"workload": workload})
 
 
 @login_required
 @user_passes_test(is_director_or_admin)
 def workload_create(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = WorkloadForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Нагрузка успешно добавлена!")
-            return redirect('workload_list')
+            return redirect("workload_list")
     else:
         form = WorkloadForm()
-    return render(request, 'workload_form.html', {'form': form})
+    return render(request, "workload_form.html", {"form": form})
 
 
 @login_required
 @user_passes_test(is_director_or_admin)
 def workload_update(request, pk):
     workload = get_object_or_404(Workload, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         form = WorkloadForm(request.POST, instance=workload)
         if form.is_valid():
             form.save()
             messages.success(request, "Нагрузка успешно обновлена!")
-            return redirect('workload_list')
+            return redirect("workload_list")
     else:
         form = WorkloadForm(instance=workload)
-    return render(request, 'workload_form.html', {'form': form})
+    return render(request, "workload_form.html", {"form": form})
 
 
 @login_required
 @user_passes_test(is_director_or_admin)
 def workload_delete(request, pk):
     workload = get_object_or_404(Workload, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         workload.delete()
         messages.success(request, "Нагрузка успешно удалена!")
-        return redirect('workload_list')
-    return render(request, 'workload_confirm_delete.html', {'workload': workload})
+        return redirect("workload_list")
+    return render(request, "workload_confirm_delete.html", {"workload": workload})
 
 
 def workload_department_list(request):
-    workload_departments = WorkloadDepartment.objects.select_related('workload', 'subgroups')
+    workload_departments = WorkloadDepartment.objects.select_related(
+        "workload", "subgroups"
+    )
 
     report = []
 
@@ -277,62 +298,84 @@ def workload_department_list(request):
 
     for discipline in disciplines:
         # Считаем сколько выделено часов на дисциплину
-        total_hours_department = WorkloadDepartment.objects.filter(workload__disciplines=discipline).aggregate(Sum('hours'))['hours__sum'] or 0
+        total_hours_department = (
+            WorkloadDepartment.objects.filter(
+                workload__disciplines=discipline
+            ).aggregate(Sum("hours"))["hours__sum"]
+            or 0
+        )
 
         # Считаем сколько часов распределено преподавателям по этой дисциплине
-        total_hours_teachers = WorkloadTeacher.objects.filter(workload__disciplines=discipline).aggregate(Sum('hours'))['hours__sum'] or 0
+        total_hours_teachers = (
+            WorkloadTeacher.objects.filter(workload__disciplines=discipline).aggregate(
+                Sum("hours")
+            )["hours__sum"]
+            or 0
+        )
 
         # Считаем остаток
         remaining_hours = total_hours_department - total_hours_teachers
 
         if total_hours_department > 0:
-            report.append({
-                'discipline': discipline.name_of_discipline,
-                'total_hours_department': total_hours_department,
-                'total_hours_teachers': total_hours_teachers,
-                'remaining_hours': remaining_hours,
-            })
+            report.append(
+                {
+                    "discipline": discipline.name_of_discipline,
+                    "total_hours_department": total_hours_department,
+                    "total_hours_teachers": total_hours_teachers,
+                    "remaining_hours": remaining_hours,
+                }
+            )
 
-    return render(request, 'workload_department_list.html', {
-        'workload_departments': workload_departments,
-        'report': report,
-    })
+    return render(
+        request,
+        "workload_department_list.html",
+        {
+            "workload_departments": workload_departments,
+            "report": report,
+        },
+    )
 
 
 def workload_department_detail(request, pk):
     obj = get_object_or_404(WorkloadDepartment, pk=pk)
-    return render(request, 'workload_department_detail.html', {'workload_department': obj})
+    return render(
+        request, "workload_department_detail.html", {"workload_department": obj}
+    )
 
 
 def workload_department_create(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = WorkloadDepartmentForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('home')  # или другой URL
+            return redirect("workload_department_list")  # или другой URL
     else:
         form = WorkloadDepartmentForm()
-    return render(request, 'workload_department_form.html', {'form': form})
+    return render(request, "workload_department_form.html", {"form": form})
 
 
 def workload_department_update(request, pk):
     workload = get_object_or_404(WorkloadDepartment, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         form = WorkloadDepartmentForm(request.POST, instance=workload)
         if form.is_valid():
             form.save()
-            return redirect('workload_department_list')  # замените на свой url
+            return redirect("workload_department_list")  # замените на свой url
     else:
         form = WorkloadDepartmentForm(instance=workload)
-    return render(request, 'workload_department_update.html', {'form': form})
+    return render(request, "workload_department_update.html", {"form": form})
 
 
 def workload_department_delete(request, pk):
     workload = get_object_or_404(WorkloadDepartment, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         workload.delete()
-        return redirect('workload_department_list')
-    return render(request, 'delete_confirm.html', {'object': workload, 'type': 'департамента'})
+        return redirect("workload_department_list")
+    return render(
+        request,
+        "workload_department_confirm_delete.html",
+        {"object": workload, "type": "департамента"},
+    )
 
 
 class DegreeViewSet(viewsets.ModelViewSet):

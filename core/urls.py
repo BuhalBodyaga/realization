@@ -50,10 +50,10 @@ urlpatterns = [
     path('workload_teacher/<int:pk>/delete/', workload_teacher_delete, name='workload_teacher_delete'),
 
     path('workload_department/', workload_department_list, name='workload_department_list'),
-    path('workload-department/<int:pk>/', views.workload_department_detail, name='workload_department_detail'),
-    path('workload-department/add/', views.workload_department_create, name='workload_department_create'),
-    path('workload-department/<int:pk>/edit/', views.workload_department_update, name='eworkload_department_update'),
-    path('workload-department/<int:pk>/delete/', views.workload_department_delete, name='delete_workload_department'),
+    path('workload_department/<int:pk>/', views.workload_department_detail, name='workload_department_detail'),
+    path('workload_department/add/', views.workload_department_create, name='workload_department_create'),
+    path('workload_department/<int:pk>/edit/', views.workload_department_update, name='workload_department_update'),
+    path('workload_department/<int:pk>/delete/', views.workload_department_delete, name='workload_department_delete'),
 
     path('get-available-hours/', views.get_available_hours, name='get-available-hours'),
 

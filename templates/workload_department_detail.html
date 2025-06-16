@@ -11,10 +11,11 @@
 <h1>Нагрузка на департамент</h1>
 
 <ul class="list-group mb-3">
-    <li class="list-group-item"><strong>Дисциплина:</strong> {{ workload_department.disciplines }}</li>
-    <li class="list-group-item"><strong>Тип нагрузки:</strong> {{ workload_department.load_types }}</li>
-    <li class="list-group-item"><strong>Группа:</strong> {{ workload_department.groups }}</li>
-    <li class="list-group-item"><strong>Семестр:</strong> {{ workload_department.semesters }}</li>
+    <li class="list-group-item"><strong>Дисциплина:</strong> {{ workload_department.workload.disciplines }}</li>
+    <li class="list-group-item"><strong>Тип нагрузки:</strong> {{ workload_department.workload.load_types }}</li>
+    <li class="list-group-item"><strong>Группа:</strong> {{ workload_department.workload.groups }}</li>
+    <li class="list-group-item"><strong>Семестр:</strong> {{ workload_department.workload.semesters }}</li>
+    <li class="list-group-item"><strong>Подгруппа:</strong> {{ workload_department.subgroups }}</li>
     <li class="list-group-item"><strong>Часы:</strong> {{ workload_department.hours }}</li>
 </ul>
 

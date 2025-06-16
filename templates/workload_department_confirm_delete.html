@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление нагрузки преподавателя{% endblock %}
+
+{% block content %}
+<h1>Удаление нагрузки на департамент</h1>
+<p>Вы уверены, что хотите удалить нагрузку на департамент {{ wt.workload.groups.name }} {{ object.hours }}?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Удалить</button>
+    <a href="{% url 'workload_department_detail' object.pk %}" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

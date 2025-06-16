@@ -1,15 +1,41 @@
 {% extends 'base.html' %}
 
-{% block title %}Добавить преподавателя{% endblock %}
+{% block title %}Преподаватель{% endblock %}
 
 {% block content %}
-<h1>Добавить преподавателя</h1>
+<div class="container mt-4">
+    <h2>{{ form.instance.pk|yesno:"Редактировать,Добавить" }} преподавателя</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="mb-3">
+            {{ form.surname.label_tag }} {{ form.surname }}
+        </div>
+        <div class="mb-3">
+            {{ form.first_name.label_tag }} {{ form.first_name }}
+        </div>
+        <div class="mb-3">
+            {{ form.second_name.label_tag }} {{ form.second_name }}
+        </div>
+        <div class="mb-3">
+            {{ form.rank.label_tag }} {{ form.rank }}
+        </div>
+        <div class="mb-3">
+            {{ form.degree.label_tag }} {{ form.degree }}
+        </div>
+        <div class="mb-3">
+            {{ form.post.label_tag }} {{ form.post }}
+        </div>
+        <div class="mb-3">
+            {{ form.rate.label_tag }} {{ form.rate }}
+        </div>
+        <div class="mb-3">
+            {{ form.discipline_types.label_tag }} {{ form.discipline_types }}
+            <div class="form-text">Удерживайте Ctrl (Cmd на Mac), чтобы выбрать несколько.</div>
+        </div>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">Сохранить</button>
-    <a href="{% url 'employee_list' %}" class="btn btn-secondary">Отмена</a>
-</form>
-
+        <button type="submit" class="btn btn-success">Сохранить</button>
+        <a href="{% url 'employee_list' %}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
 {% endblock %}

@@ -29,6 +29,13 @@ class Rate(models.Model):
         return str(self.rate_value)
 
 
+class DisciplineType(models.Model):
+    type = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.type
+
+
 class Employee(models.Model):
     first_name = models.CharField("Имя", max_length=100, null=True, blank=True)
     second_name = models.CharField("Отчество", max_length=100, null=True, blank=True)
@@ -38,6 +45,12 @@ class Employee(models.Model):
     post = models.ForeignKey(Post, verbose_name="Должность", on_delete=models.CASCADE)
     rate = models.ForeignKey(Rate, verbose_name="Ставка", on_delete=models.CASCADE)
 
+    discipline_types = models.ManyToManyField(
+        DisciplineType,
+        related_name="employees",
+        blank=True,
+        verbose_name="Типы дисциплин, которые может вести",
+    )
 
     def __str__(self):
         return f"{self.surname} {self.first_name[0]}.{self.second_name[0]}."
@@ -67,13 +80,6 @@ class Semester(models.Model):
 
 class LoadType(models.Model):
     type = models.CharField(max_length=45)
-
-    def __str__(self):
-        return self.type
-
-
-class DisciplineType(models.Model):
-    type = models.CharField(max_length=100)
 
     def __str__(self):
         return self.type
@@ -118,7 +124,9 @@ class WorkloadDepartment(models.Model):
 
 class Department(models.Model):
     name = models.CharField(max_length=100)
-    workload_department = models.ForeignKey(WorkloadDepartment, on_delete=models.CASCADE)
+    workload_department = models.ForeignKey(
+        WorkloadDepartment, on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return self.name

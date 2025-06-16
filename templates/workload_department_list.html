@@ -3,8 +3,9 @@
 {% block content %}
 <div class="container mt-4">
     {% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
-<a href="{% url 'workload_department_create' %}" class="btn btn-primary mb-3">Добавить дисциплину</a>
-{% endif %}
+    <a href="{% url 'workload_department_create' %}" class="btn btn-primary mb-3">Добавить дисциплину</a>
+    {% endif %}
+    
     <h2>Нагрузка на департамент</h2>
 
     <h4>Отчет по дисциплинам</h4>
@@ -36,33 +37,21 @@
     <hr>
 
     <h4>Подробная нагрузка по дисциплинам и подгруппам</h4>
-    <table class="table table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>Дисциплина</th>
-                <th>Тип нагрузки</th>
-                <th>Группа</th>
-                <th>Семестр</th>
-                <th>Подгруппа</th>
-                <th>Часы</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for wd in workload_departments %}
-            <tr>
-                <td>{{ wd.workload.disciplines }}</td>
-                <td>{{ wd.workload.load_types }}</td>
-                <td>{{ wd.workload.groups }}</td>
-                <td>{{ wd.workload.semesters }}</td>
-                <td>{{ wd.subgroups }}</td>
-                <td>{{ wd.hours }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6">Нагрузка не найдена</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <ul class="list-group">
+        {% for wd in workload_departments %}
+            <li class="list-group-item">
+                <a href="{% url 'workload_department_detail' wd.pk %}">
+                    {{ wd.workload.disciplines }} — 
+                    {{ wd.workload.load_types }} — 
+                    {{ wd.workload.groups }} — 
+                    Семестр {{ wd.workload.semesters }} — 
+                    Подгруппа {{ wd.subgroups }} — 
+                    {{ wd.hours }} ч.
+                </a>
+            </li>
+        {% empty %}
+            <li class="list-group-item">Нагрузка не найдена</li>
+        {% endfor %}
+    </ul>
 </div>
 {% endblock %}
