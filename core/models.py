@@ -60,6 +60,7 @@ class Employee(models.Model):
     disciplines = models.ManyToManyField(
         'Discipline',
         related_name="employees",
+        null=True,
         blank=True,
         verbose_name="Дисциплины, которые может вести",
     )
