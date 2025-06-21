@@ -98,16 +98,29 @@ def workload_teacher_list(request):
 @login_required
 @user_passes_test(is_director_or_admin)
 def workload_teacher_create(request):
+    initial = {}
+    if request.method == "GET":
+        employee_id = request.GET.get("employee_id")
+        workload_id = request.GET.get("workload_id")
+        subgroup_id = request.GET.get("subgroup_id")
+        max_hours = request.GET.get("max_hours")
+        not_assigned = request.GET.get("not_assigned")
+        if employee_id:
+            initial["employees"] = employee_id
+        if workload_id:
+            initial["workload"] = workload_id
+        if subgroup_id:
+            initial["subgroups"] = subgroup_id
+        if max_hours and not_assigned:
+            initial["hours"] = min(int(max_hours), int(not_assigned))
     if request.method == "POST":
         form = WorkloadTeacherForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Нагрузка преподавателя успешно добавлена!")
-            return redirect(
-                "workload_teacher_list"
-            )  # потом сделаем страницу со списком распределений
+            return redirect("workload_teacher_list")
     else:
-        form = WorkloadTeacherForm()
+        form = WorkloadTeacherForm(initial=initial)
     return render(request, "workload_teacher_form.html", {"form": form})
 
 
@@ -118,7 +131,7 @@ def workload_teacher_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, "Нагрузка преподавателя успешно обновлена!")
-            return redirect("workload_teacher_list")  # замените на свой url
+            return redirect("workload_teacher_list")
     else:
         form = WorkloadTeacherForm(instance=workload)
     return render(request, "workload_teacher_form.html", {"form": form})
@@ -297,7 +310,6 @@ def workload_department_list(request):
     disciplines = Discipline.objects.all()
 
     for discipline in disciplines:
-        # Считаем сколько выделено часов на дисциплину
         total_hours_department = (
             WorkloadDepartment.objects.filter(
                 workload__disciplines=discipline
@@ -305,7 +317,6 @@ def workload_department_list(request):
             or 0
         )
 
-        # Считаем сколько часов распределено преподавателям по этой дисциплине
         total_hours_teachers = (
             WorkloadTeacher.objects.filter(workload__disciplines=discipline).aggregate(
                 Sum("hours")
@@ -313,8 +324,52 @@ def workload_department_list(request):
             or 0
         )
 
-        # Считаем остаток
         remaining_hours = total_hours_department - total_hours_teachers
+
+        details = []
+        for wd in WorkloadDepartment.objects.filter(workload__disciplines=discipline):
+            teachers = WorkloadTeacher.objects.filter(
+                workload=wd.workload, subgroups=wd.subgroups
+            )
+            teachers_info = [
+                {
+                    "employee": t.employees,
+                    "hours": t.hours,
+                }
+                for t in teachers
+            ]
+            assigned_hours = sum(t["hours"] for t in teachers_info)
+            not_assigned = wd.hours - assigned_hours
+
+            discipline_type = wd.workload.disciplines.types_of_discipline
+
+            recommended = []
+            for emp in Employee.objects.all():
+                if emp.disciplines.filter(types_of_discipline=discipline_type).exists():
+                    total = (
+                        WorkloadTeacher.objects.filter(employees=emp).aggregate(
+                            Sum("hours")
+                        )["hours__sum"]
+                        or 0
+                    )
+                    allowed = emp.rate.rate_value * 900
+                    free = allowed - total
+                    if free > 0:
+                        recommended.append(
+                            {
+                                "employee": emp,
+                                "free_hours": free,
+                            }
+                        )
+
+            details.append(
+                {
+                    "wd": wd,
+                    "teachers_info": teachers_info,
+                    "not_assigned": not_assigned,
+                    "recommended": recommended,
+                }
+            )
 
         if total_hours_department > 0:
             report.append(
@@ -323,6 +378,7 @@ def workload_department_list(request):
                     "total_hours_department": total_hours_department,
                     "total_hours_teachers": total_hours_teachers,
                     "remaining_hours": remaining_hours,
+                    "details": details,
                 }
             )
 
@@ -348,7 +404,7 @@ def workload_department_create(request):
         form = WorkloadDepartmentForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect("workload_department_list")  # или другой URL
+            return redirect("workload_department_list")
     else:
         form = WorkloadDepartmentForm()
     return render(request, "workload_department_form.html", {"form": form})
@@ -360,7 +416,7 @@ def workload_department_update(request, pk):
         form = WorkloadDepartmentForm(request.POST, instance=workload)
         if form.is_valid():
             form.save()
-            return redirect("workload_department_list")  # замените на свой url
+            return redirect("workload_department_list")
     else:
         form = WorkloadDepartmentForm(instance=workload)
     return render(request, "workload_department_update.html", {"form": form})

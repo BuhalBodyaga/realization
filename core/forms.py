@@ -46,7 +46,8 @@ class EmployeeForm(forms.ModelForm):
                 "main_discipline",
                 "Основная дисциплина должна быть выбрана среди дисциплин, которые может вести преподаватель.",
             )
-        return cleaned_data    
+        return cleaned_data
+
 
 class DisciplineForm(forms.ModelForm):
     class Meta:
@@ -83,31 +84,40 @@ class WorkloadForm(forms.ModelForm):
 class WorkloadTeacherForm(forms.ModelForm):
     class Meta:
         model = WorkloadTeacher
-        fields = ['employees', 'workload', 'subgroups', 'hours']
+        fields = ["employees", "workload", "subgroups", "hours"]
         labels = {
-            'employees': 'Преподаватель',
-            'workload': 'Нагрузка (предмет-группа-семестр)',
-            'subgroups': 'Подгруппа',
-            'hours': 'Часы',
+            "employees": "Преподаватель",
+            "workload": "Нагрузка (предмет-группа-семестр)",
+            "subgroups": "Подгруппа",
+            "hours": "Часы",
         }
         widgets = {
-            'employees': forms.Select(attrs={'class': 'form-select'}),
-            'workload': forms.Select(attrs={'class': 'form-select'}),
-            'subgroups': forms.Select(attrs={'class': 'form-select'}),
-            'hours': forms.NumberInput(attrs={'class': 'form-control'}),
+            "employees": forms.Select(attrs={"class": "form-select"}),
+            "workload": forms.Select(attrs={"class": "form-select"}),
+            "subgroups": forms.Select(attrs={"class": "form-select"}),
+            "hours": forms.NumberInput(attrs={"class": "form-control"}),
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        employee = cleaned_data.get('employees')
-        workload = cleaned_data.get('workload')
 
-        if employee and workload:
-            discipline = workload.disciplines
-            if discipline not in employee.disciplines.all():
-                raise ValidationError({
-                    'employees': f"Преподаватель {employee} не может вести дисциплину '{discipline}'."
-                })
+def clean(self):
+    cleaned_data = super().clean()
+    employee = cleaned_data.get("employees")
+    workload = cleaned_data.get("workload")
+
+    if employee and workload:
+        discipline = workload.disciplines
+        discipline_type = discipline.types_of_discipline
+
+        # Проверка: может ли вести дисциплину этого типа
+        if not employee.disciplines.filter(
+            types_of_discipline=discipline_type
+        ).exists():
+            raise ValidationError(
+                {
+                    "employees": f"Преподаватель {employee} не может вести дисциплины типа '{discipline_type}'."
+                }
+            )
+    return cleaned_data
 
 
 from django import forms

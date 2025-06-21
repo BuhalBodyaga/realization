@@ -1,15 +1,16 @@
 {% extends 'base.html' %}
 
-{% block title %}Добавить нагрузку{% endblock %}
+{% block title %}
+  Добавить нагрузку
+{% endblock %}
 
 {% block content %}
-<h1>Добавить нагрузку</h1>
+  <h1>Добавить нагрузку</h1>
 
-<form method="post">
+  <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-success">Сохранить</button>
     <a href="{% url 'workload_list' %}" class="btn btn-secondary">Отмена</a>
-</form>
-
+  </form>
 {% endblock %}

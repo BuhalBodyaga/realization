@@ -1,23 +1,37 @@
 {% extends 'base.html' %}
 
-{% block title %}Нагрузка на департамент{% endblock %}
+{% block title %}
+  Нагрузка на департамент
+{% endblock %}
 
 {% block content %}
-{% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
-<a href="{% url 'workload_department_update' workload_department.pk %}" class="btn btn-warning">Редактировать</a>
-<a href="{% url 'workload_department_delete' workload_department.pk %}" class="btn btn-danger">Удалить</a>
-{% endif %}
+  {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
+    <a href="{% url 'workload_department_update' workload_department.pk %}" class="btn btn-warning">Редактировать</a>
+    <a href="{% url 'workload_department_delete' workload_department.pk %}" class="btn btn-danger">Удалить</a>
+  {% endif %}
 
-<h1>Нагрузка на департамент</h1>
+  <h1>Нагрузка на департамент</h1>
 
-<ul class="list-group mb-3">
-    <li class="list-group-item"><strong>Дисциплина:</strong> {{ workload_department.workload.disciplines }}</li>
-    <li class="list-group-item"><strong>Тип нагрузки:</strong> {{ workload_department.workload.load_types }}</li>
-    <li class="list-group-item"><strong>Группа:</strong> {{ workload_department.workload.groups }}</li>
-    <li class="list-group-item"><strong>Семестр:</strong> {{ workload_department.workload.semesters }}</li>
-    <li class="list-group-item"><strong>Подгруппа:</strong> {{ workload_department.subgroups }}</li>
-    <li class="list-group-item"><strong>Часы:</strong> {{ workload_department.hours }}</li>
-</ul>
+  <ul class="list-group mb-3">
+    <li class="list-group-item">
+      <strong>Дисциплина:</strong> {{ workload_department.workload.disciplines }}
+    </li>
+    <li class="list-group-item">
+      <strong>Тип нагрузки:</strong> {{ workload_department.workload.load_types }}
+    </li>
+    <li class="list-group-item">
+      <strong>Группа:</strong> {{ workload_department.workload.groups }}
+    </li>
+    <li class="list-group-item">
+      <strong>Семестр:</strong> {{ workload_department.workload.semesters }}
+    </li>
+    <li class="list-group-item">
+      <strong>Подгруппа:</strong> {{ workload_department.subgroups }}
+    </li>
+    <li class="list-group-item">
+      <strong>Часы:</strong> {{ workload_department.hours }}
+    </li>
+  </ul>
 
-<a class="btn btn-secondary" href="{% url 'workload_department_list' %}">← Назад к списку нагрузок</a>
+  <a class="btn btn-secondary" href="{% url 'workload_department_list' %}">← Назад к списку нагрузок</a>
 {% endblock %}

@@ -1,21 +1,21 @@
 {% extends 'base.html' %}
 
-{% block title %}Список нагрузок{% endblock %}
+{% block title %}
+  Список нагрузок
+{% endblock %}
 
 {% block content %}
-{% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
-<a href="{% url 'workload_create' %}" class="btn btn-primary mb-3">Добавить нагрузку</a>
-{% endif %}
-<h1>Список нагрузок</h1>
-<ul class="list-group">
+  {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
+    <a href="{% url 'workload_create' %}" class="btn btn-primary mb-3">Добавить нагрузку</a>
+  {% endif %}
+  <h1>Список нагрузок</h1>
+  <ul class="list-group">
     {% for w in workloads %}
-        <li class="list-group-item">
-            <a href="{% url 'workload_detail' w.pk %}">
-                {{ w.disciplines.name_of_discipline }} — {{ w.groups.name }} — Семестр {{ w.semesters.number }} ({{ w.load_types.type }})
-            </a>
-        </li>
+      <li class="list-group-item">
+        <a href="{% url 'workload_detail' w.pk %}">{{ w.disciplines.name_of_discipline }} — {{ w.groups.name }} — Семестр {{ w.semesters.number }} ({{ w.load_types.type }})</a>
+      </li>
     {% empty %}
-        <li class="list-group-item">Нет нагрузок</li>
+      <li class="list-group-item">Нет нагрузок</li>
     {% endfor %}
-</ul>
+  </ul>
 {% endblock %}

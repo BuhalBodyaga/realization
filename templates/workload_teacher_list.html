@@ -1,25 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %}Распределённая нагрузка{% endblock %}
+{% block title %}
+  Распределённая нагрузка
+{% endblock %}
 
 {% block content %}
-{% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
-<a href="{% url 'workload_teacher_create' %}" class="btn btn-primary mb-3">Добавить распределение</a>
-{% endif %}
-<h1>Распределённая нагрузка преподавателей</h1>
-<ul class="list-group">
+  {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
+    <a href="{% url 'workload_teacher_create' %}" class="btn btn-primary mb-3">Добавить распределение</a>
+  {% endif %}
+  <h1>Распределённая нагрузка преподавателей</h1>
+  <ul class="list-group">
     {% for wt in workload_teachers %}
-        <li class="list-group-item">
-            <a href="{% url 'workload_teacher_detail' wt.pk %}">
-                {{ wt.employees.surname }} {{ wt.employees.first_name }} – 
-                {{ wt.workload.disciplines.name_of_discipline }} ({{ wt.workload.load_types.type }}) — 
-                {{ wt.workload.groups.name }} / {{ wt.workload.semesters.number }}, 
-                подгруппа: {{ wt.subgroups }}, 
-                часы: {{ wt.hours }}
-            </a>
-        </li>
+      <li class="list-group-item">
+        <a href="{% url 'workload_teacher_detail' wt.pk %}">
+          {{ wt.employees.surname }} {{ wt.employees.first_name }} –
+          {{ wt.workload.disciplines.name_of_discipline }} ({{ wt.workload.load_types.type }}) —
+          {{ wt.workload.groups.name }} / {{ wt.workload.semesters.number }}, подгруппа: {{ wt.subgroups }}, часы: {{ wt.hours }}
+        </a>
+      </li>
     {% empty %}
-        <li class="list-group-item">Пока нет распределённой нагрузки</li>
+      <li class="list-group-item">Пока нет распределённой нагрузки</li>
     {% endfor %}
-</ul>
+  </ul>
 {% endblock %}

@@ -1,21 +1,21 @@
 {% extends 'base.html' %}
 
-{% block title %}Список преподавателей{% endblock %}
+{% block title %}
+  Список преподавателей
+{% endblock %}
 
 {% block content %}
-{% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
+  {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
     <a href="{% url 'employee_create' %}" class="btn btn-primary mb-3">Добавить преподавателя</a>
-{% endif %}
-<h1>Список преподавателей</h1>
-<ul class="list-group">
+  {% endif %}
+  <h1>Список преподавателей</h1>
+  <ul class="list-group">
     {% for emp in employees %}
-        <li class="list-group-item">
-            <a href="{% url 'employee_detail' emp.pk %}">
-                {{ emp.surname }} {{ emp.first_name }} {{ emp.second_name }} — {{ emp.post }}
-            </a>
-        </li>
+      <li class="list-group-item">
+        <a href="{% url 'employee_detail' emp.pk %}">{{ emp.surname }} {{ emp.first_name }} {{ emp.second_name }} — {{ emp.post }}</a>
+      </li>
     {% empty %}
-        <li class="list-group-item">Нет преподавателей</li>
+      <li class="list-group-item">Нет преподавателей</li>
     {% endfor %}
-</ul>
+  </ul>
 {% endblock %}

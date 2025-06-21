@@ -1,17 +1,21 @@
 {% extends 'base.html' %}
 
-{% block title %}Дисциплина{% endblock %}
+{% block title %}
+  Дисциплина
+{% endblock %}
 
 {% block content %}
-{% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
-<a href="{% url 'discipline_update' discipline.pk %}" class="btn btn-warning">Редактировать</a>
-<a href="{% url 'discipline_delete' discipline.pk %}" class="btn btn-danger">Удалить</a>
-{% endif %}
-<h1>{{ discipline.name_of_discipline }}</h1>
+  {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
+    <a href="{% url 'discipline_update' discipline.pk %}" class="btn btn-warning">Редактировать</a>
+    <a href="{% url 'discipline_delete' discipline.pk %}" class="btn btn-danger">Удалить</a>
+  {% endif %}
+  <h1>{{ discipline.name_of_discipline }}</h1>
 
-<ul class="list-group mb-3">
-    <li class="list-group-item"><strong>Тип дисциплины:</strong> {{ discipline.types_of_discipline.type }}</li>
-</ul>
+  <ul class="list-group mb-3">
+    <li class="list-group-item">
+      <strong>Тип дисциплины:</strong> {{ discipline.types_of_discipline.type }}
+    </li>
+  </ul>
 
-<a class="btn btn-secondary" href="/disciplines/">← Назад к списку дисциплин</a>
+  <a class="btn btn-secondary" href="/disciplines/">← Назад к списку дисциплин</a>
 {% endblock %}

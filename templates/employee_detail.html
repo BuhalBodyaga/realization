@@ -1,39 +1,49 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ employee }}{% endblock %}
+{% block title %}
+  {{ employee }}
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+  <div class="container mt-4">
     <h2>{{ employee }}</h2>
 
     <ul class="list-group mb-3">
-        <li class="list-group-item"><strong>Ранг:</strong> {{ employee.rank }}</li>
-        <li class="list-group-item"><strong>Степень:</strong> {{ employee.degree }}</li>
-        <li class="list-group-item"><strong>Должность:</strong> {{ employee.post }}</li>
-        <li class="list-group-item"><strong>Ставка:</strong> {{ employee.rate }}</li>
-        <li class="list-group-item">
-            <strong>Дисциплины, которые может вести:</strong>
-            {% for d in employee.disciplines.all %}
-                <span class="badge bg-success text-light">{{ d.name_of_discipline }}</span>
-            {% empty %}
-                <em>не указаны</em>
-            {% endfor %}
-        </li>
-        <li class="list-group-item">
-            <strong>Основная дисциплина:</strong>
-            {% if employee.main_discipline %}
-                <span class="badge bg-primary text-light">{{ employee.main_discipline.name_of_discipline }}</span>
-            {% else %}
-                <em>не указана</em>
-            {% endif %}
-        </li>
+      <li class="list-group-item">
+        <strong>Ранг:</strong> {{ employee.rank }}
+      </li>
+      <li class="list-group-item">
+        <strong>Степень:</strong> {{ employee.degree }}
+      </li>
+      <li class="list-group-item">
+        <strong>Должность:</strong> {{ employee.post }}
+      </li>
+      <li class="list-group-item">
+        <strong>Ставка:</strong> {{ employee.rate }}
+      </li>
+      <li class="list-group-item">
+        <strong>Дисциплины, которые может вести:</strong>
+        {% for d in employee.disciplines.all %}
+          <span class="badge bg-success text-light">{{ d.name_of_discipline }}</span>
+        {% empty %}
+          <em>не указаны</em>
+        {% endfor %}
+      </li>
+      <li class="list-group-item">
+        <strong>Основная дисциплина:</strong>
+        {% if employee.main_discipline %}
+          <span class="badge bg-primary text-light">{{ employee.main_discipline.name_of_discipline }}</span>
+        {% else %}
+          <em>не указана</em>
+        {% endif %}
+      </li>
     </ul>
 
-    {% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
-        <a href="{% url 'employee_update' employee.pk %}" class="btn btn-warning">Редактировать</a>
-        <a href="{% url 'employee_delete' employee.pk %}" class="btn btn-danger">Удалить</a>
+    {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
+      <a href="{% url 'employee_update' employee.pk %}" class="btn btn-warning">Редактировать</a>
+      <a href="{% url 'employee_delete' employee.pk %}" class="btn btn-danger">Удалить</a>
     {% endif %}
 
     <a href="{% url 'employee_list' %}" class="btn btn-secondary">← Назад к списку</a>
-</div>
+  </div>
 {% endblock %}

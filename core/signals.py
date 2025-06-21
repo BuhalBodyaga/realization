@@ -15,7 +15,6 @@ def auto_distribute_workload(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=WorkloadDepartment)
 def delete_related_workload_teacher(sender, instance, **kwargs):
-    # Получаем параметры удалённой записи
     workload = instance.workload
     subgroup = instance.subgroups
 

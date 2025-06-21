@@ -1,57 +1,98 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    {% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
-    <a href="{% url 'workload_department_create' %}" class="btn btn-primary mb-3">Добавить дисциплину</a>
+  <div class="container mt-4">
+    {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
+      <a href="{% url 'workload_department_create' %}" class="btn btn-primary mb-3">Добавить дисциплину</a>
     {% endif %}
-    
+
     <h2>Нагрузка на департамент</h2>
 
     <h4>Отчет по дисциплинам</h4>
-    <table class="table table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th>Дисциплина</th>
-                <th>Выделено часов</th>
-                <th>Распределено часов</th>
-                <th>Осталось распределить</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in report %}
-            <tr class="{% if item.remaining_hours == 0 %}table-success{% else %}table-warning{% endif %}">
-                <td>{{ item.discipline }}</td>
-                <td>{{ item.total_hours_department }}</td>
-                <td>{{ item.total_hours_teachers }}</td>
-                <td>{{ item.remaining_hours }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4">Нет данных</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <hr>
-
-    <h4>Подробная нагрузка по дисциплинам и подгруппам</h4>
-    <ul class="list-group">
-        {% for wd in workload_departments %}
-            <li class="list-group-item">
-                <a href="{% url 'workload_department_detail' wd.pk %}">
-                    {{ wd.workload.disciplines }} — 
-                    {{ wd.workload.load_types }} — 
-                    {{ wd.workload.groups }} — 
-                    Семестр {{ wd.workload.semesters }} — 
-                    Подгруппа {{ wd.subgroups }} — 
-                    {{ wd.hours }} ч.
-                </a>
-            </li>
+    <table class="table table-bordered" id="department-table">
+      <thead class="table-dark">
+        <tr>
+          <th>Дисциплина</th>
+          <th>Выделено часов</th>
+          <th>Распределено часов</th>
+          <th>Осталось распределить</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in report %}
+          <tr class="table-row" data-index="{{ forloop.counter0 }}" style="cursor:pointer;">
+            <td>{{ item.discipline }}</td>
+            <td>{{ item.total_hours_department }}</td>
+            <td>{{ item.total_hours_teachers }}</td>
+            <td>{{ item.remaining_hours }}</td>
+          </tr>
+          <tr class="details-row" id="details-{{ forloop.counter0 }}" style="display:none;">
+            <td colspan="4">
+              {% for d in item.details %}
+                <div class="mb-2">
+                  <strong>Группа:</strong> {{ d.wd.workload.groups }} /
+                  <strong>Семестр:</strong> {{ d.wd.workload.semesters }} /
+                  <strong>Тип нагрузки:</strong> {{ d.wd.workload.load_types }} /
+                  <strong>Подгруппа:</strong> {{ d.wd.subgroups }} /
+                  <strong>Всего часов:</strong> {{ d.wd.hours }}
+                  <div class="mb-2">
+                    <a href="{% url 'workload_department_update' d.wd.id %}" class="btn btn-sm btn-warning">Редактировать</a>
+                    <a href="{% url 'workload_department_delete' d.wd.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Вы уверены, что хотите удалить эту нагрузку на департамент?');">Удалить</a>
+                  </div>
+                  <ul>
+                    {% for t in d.teachers_info %}
+                      <li>
+                        <span class="badge bg-success">{{ t.employee }}</span> — {{ t.hours }} ч.
+                      </li>
+                    {% empty %}
+                      <li>
+                        <em>Пока не распределено</em>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                  {% if d.not_assigned > 0 %}
+                    <div class="alert alert-warning p-2">
+                      <strong>Нераспределено:</strong> {{ d.not_assigned }} ч.<br />
+                      <strong>Рекомендованные преподаватели:</strong>
+                      <ul>
+                        {% for rec in d.recommended %}
+                          <li>
+                            <a href="{% url 'workload_teacher_create' %}?employee_id={{ rec.employee.id }}&workload_id={{ d.wd.workload.id }}&subgroup_id={{ d.wd.subgroups.id }}&max_hours={{ rec.free_hours }}&not_assigned={{ d.not_assigned }}" class="btn btn-sm btn-outline-info mb-1">{{ rec.employee }} (свободно {{ rec.free_hours }} ч.)</a>
+                          </li>
+                        {% empty %}
+                          <li>
+                            <em>Нет подходящих преподавателей</em>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  {% endif %}
+                </div>
+                <hr />
+              {% endfor %}
+            </td>
+          </tr>
         {% empty %}
-            <li class="list-group-item">Нагрузка не найдена</li>
+          <tr>
+            <td colspan="4">Нет данных</td>
+          </tr>
         {% endfor %}
-    </ul>
-</div>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.table-row').forEach(function (row) {
+        row.addEventListener('click', function () {
+          var idx = row.getAttribute('data-index')
+          var details = document.getElementById('details-' + idx)
+          if (details.style.display === 'none') {
+            details.style.display = ''
+          } else {
+            details.style.display = 'none'
+          }
+        })
+      })
+    })
+  </script>
 {% endblock %}

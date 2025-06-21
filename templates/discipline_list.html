@@ -1,21 +1,21 @@
 {% extends 'base.html' %}
 
-{% block title %}Список дисциплин{% endblock %}
+{% block title %}
+  Список дисциплин
+{% endblock %}
 
 {% block content %}
-{% if user.groups.all.0.name == "Директор департамента" or user.is_superuser %}
-<a href="{% url 'discipline_create' %}" class="btn btn-primary mb-3">Добавить дисциплину</a>
-{% endif %}
-<h1>Список дисциплин</h1>
-<ul class="list-group">
+  {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
+    <a href="{% url 'discipline_create' %}" class="btn btn-primary mb-3">Добавить дисциплину</a>
+  {% endif %}
+  <h1>Список дисциплин</h1>
+  <ul class="list-group">
     {% for d in disciplines %}
-        <li class="list-group-item">
-            <a href="{% url 'discipline_detail' d.pk %}">
-                {{ d.name_of_discipline }} ({{ d.types_of_discipline.type }})
-            </a>
-        </li>
+      <li class="list-group-item">
+        <a href="{% url 'discipline_detail' d.pk %}">{{ d.name_of_discipline }} ({{ d.types_of_discipline.type }})</a>
+      </li>
     {% empty %}
-        <li class="list-group-item">Нет дисциплин</li>
+      <li class="list-group-item">Нет дисциплин</li>
     {% endfor %}
-</ul>
+  </ul>
 {% endblock %}
