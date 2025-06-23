@@ -107,7 +107,7 @@ class Discipline(models.Model):
 
 class Workload(models.Model):
     disciplines = models.ForeignKey(Discipline, on_delete=models.CASCADE)
-    load_types = models.ForeignKey(LoadType, on_delete=models.CASCADE)
+    load_types = models.ManyToManyField(LoadType)  # изменено!
     groups = models.ForeignKey(Group, on_delete=models.CASCADE)
     semesters = models.ForeignKey(Semester, on_delete=models.CASCADE)
 

@@ -69,13 +69,13 @@ class WorkloadForm(forms.ModelForm):
         fields = ["disciplines", "load_types", "groups", "semesters"]
         labels = {
             "disciplines": "Дисциплина",
-            "load_types": "Тип нагрузки",
+            "load_types": "Типы нагрузки",
             "groups": "Группа",
             "semesters": "Семестр",
         }
         widgets = {
             "disciplines": forms.Select(attrs={"class": "form-select"}),
-            "load_types": forms.Select(attrs={"class": "form-select"}),
+            "load_types": forms.CheckboxSelectMultiple(),  # чекбоксы!
             "groups": forms.Select(attrs={"class": "form-select"}),
             "semesters": forms.Select(attrs={"class": "form-select"}),
         }

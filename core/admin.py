@@ -95,8 +95,12 @@ class DisciplineAdmin(admin.ModelAdmin):
 
 @admin.register(Workload)
 class WorkloadAdmin(admin.ModelAdmin):
-    list_display = ("id", "disciplines", "groups", "semesters", "load_types")
+    list_display = ("id", "disciplines", "groups", "semesters", "get_load_types")
     list_filter = ("groups", "semesters", "load_types")
+
+    def get_load_types(self, obj):
+        return ", ".join([lt.type for lt in obj.load_types.all()])
+    get_load_types.short_description = "Типы нагрузки"
 
 
 @admin.register(WorkloadTeacher)

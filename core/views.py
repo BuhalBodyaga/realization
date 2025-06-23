@@ -257,7 +257,23 @@ def workload_list(request):
 
 def workload_detail(request, pk):
     workload = get_object_or_404(Workload, pk=pk)
-    return render(request, "workload_detail.html", {"workload": workload})
+    if request.method == "POST":
+        form = WorkloadForm(request.POST, instance=workload)
+        if form.is_valid():
+            workload = form.save()
+            form.save_m2m()
+            messages.success(request, "Типы нагрузки обновлены!")
+            return redirect("workload_detail", pk=pk)
+    else:
+        form = WorkloadForm(instance=workload)
+    # Для отображения количества подгрупп:
+    group = workload.groups
+    count_subgroups = (group.count_people // 15) + (1 if group.count_people % 15 else 0)
+    return render(request, "workload_detail.html", {
+        "workload": workload,
+        "form": form,
+        "count_subgroups": count_subgroups,
+    })
 
 
 @login_required

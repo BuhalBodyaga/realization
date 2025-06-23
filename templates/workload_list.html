@@ -12,7 +12,12 @@
   <ul class="list-group">
     {% for w in workloads %}
       <li class="list-group-item">
-        <a href="{% url 'workload_detail' w.pk %}">{{ w.disciplines.name_of_discipline }} — {{ w.groups.name }} — Семестр {{ w.semesters.number }} ({{ w.load_types.type }})</a>
+        <a href="{% url 'workload_detail' w.pk %}">
+          {{ w.disciplines.name_of_discipline }} — {{ w.groups.name }} — Семестр {{ w.semesters.number }}
+          ({% for lt in w.load_types.all %}{{ lt.type }}{% if not forloop.last %}, {% endif %}{% endfor %})
+        </a>
+        <a href="{% url 'workload_update' w.pk %}" class="btn btn-sm btn-warning ms-2">Редактировать</a>
+        <a href="{% url 'workload_delete' w.pk %}" class="btn btn-sm btn-danger ms-2" onclick="return confirm('Вы уверены, что хотите удалить эту нагрузку?');">Удалить</a>
       </li>
     {% empty %}
       <li class="list-group-item">Нет нагрузок</li>
