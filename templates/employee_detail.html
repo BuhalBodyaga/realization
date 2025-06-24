@@ -38,12 +38,26 @@
         {% endif %}
       </li>
     </ul>
+    <p>user: {{ user.username }}, superuser: {{ user.is_superuser }}</p>
+    <p>groups: {% for group in user.groups.all %}{{ group.name }} {% endfor %}</p>
 
-    {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
+    {% if user.is_superuser %}
+      <a href="{% url 'employee_loadtype_matrix_wish' %}" class="btn btn-info mb-2">Мои желаемые типы нагрузок</a>
+      <a href="{% url 'employee_loadtype_matrix' employee.pk %}" class="btn btn-info mb-2">Типы нагрузок по дисциплинам</a>
       <a href="{% url 'employee_update' employee.pk %}" class="btn btn-warning">Редактировать</a>
       <a href="{% url 'employee_delete' employee.pk %}" class="btn btn-danger">Удалить</a>
     {% endif %}
 
+    {% for group in user.groups.all %}
+      {% if group.name == 'Директор департамента' %}
+        <a href="{% url 'employee_loadtype_matrix' employee.pk %}" class="btn btn-info mb-2">Типы нагрузок по дисциплинам</a>
+        <a href="{% url 'employee_update' employee.pk %}" class="btn btn-warning">Редактировать</a>
+        <a href="{% url 'employee_delete' employee.pk %}" class="btn btn-danger">Удалить</a>
+      {% endif %}
+      {% if group.name == 'Преподаватель' %}
+        <a href="{% url 'employee_loadtype_matrix_wish' employee.pk %}" class="btn btn-info mb-2">Мои желаемые типы нагрузок</a>
+      {% endif %}
+    {% endfor %}
     <a href="{% url 'employee_list' %}" class="btn btn-secondary">← Назад к списку</a>
   </div>
 {% endblock %}

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Employee
+from .models import Employee, EmployeeDisciplineLoadType, EmployeeDisciplineLoadTypeWish
 from .models import Discipline
 from .models import Workload
 from .models import WorkloadTeacher, WorkloadDepartment
@@ -207,3 +207,49 @@ class WorkloadDepartmentForm(forms.ModelForm):
                 )
 
         return cleaned_data
+
+
+class EmployeeDisciplineLoadTypeForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        employee = kwargs.pop('employee')
+        super().__init__(*args, **kwargs)
+        self.disciplines = employee.disciplines.all()
+        self.load_types = LoadType.objects.all()
+        self.field_matrix = []
+        for discipline in self.disciplines:
+            row = []
+            for load_type in self.load_types:
+                field_name = f"disc_{discipline.id}_lt_{load_type.id}"
+                checked = EmployeeDisciplineLoadType.objects.filter(
+                    employee=employee, discipline=discipline, load_type=load_type
+                ).exists()
+                self.fields[field_name] = forms.BooleanField(
+                    required=False,
+                    initial=checked,
+                    label=""
+                )
+                row.append(field_name)
+            self.field_matrix.append((discipline, row))
+
+
+class EmployeeDisciplineLoadTypeWishForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        employee = kwargs.pop('employee')
+        super().__init__(*args, **kwargs)
+        self.disciplines = employee.disciplines.all()
+        self.load_types = LoadType.objects.all()
+        self.field_matrix = []
+        for discipline in self.disciplines:
+            row = []
+            for load_type in self.load_types:
+                field_name = f"disc_{discipline.id}_lt_{load_type.id}"
+                checked = EmployeeDisciplineLoadTypeWish.objects.filter(
+                    employee=employee, discipline=discipline, load_type=load_type
+                ).exists()
+                self.fields[field_name] = forms.BooleanField(
+                    required=False,
+                    initial=checked,
+                    label=""
+                )
+                row.append(field_name)
+            self.field_matrix.append((discipline, row))

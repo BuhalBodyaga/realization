@@ -9,11 +9,12 @@ from .models import Workload
 from .models import WorkloadTeacher
 from .models import WorkloadDepartment
 from django.shortcuts import get_object_or_404
-from .forms import EmployeeForm
+from .forms import EmployeeDisciplineLoadTypeForm, EmployeeDisciplineLoadTypeWishForm, EmployeeForm
 from .forms import DisciplineForm
 from .forms import WorkloadForm
 from .forms import WorkloadTeacherForm
 from .forms import WorkloadDepartmentForm
+from .models import EmployeeDisciplineLoadTypeWish
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
@@ -25,6 +26,10 @@ def is_director_or_admin(user):
     return (
         user.groups.filter(name="Директор департамента").exists() or user.is_superuser
     )
+
+
+def is_teacher(user):
+    return user.groups.filter(name="Преподаватель").exists()
 
 
 def home(request):
@@ -448,6 +453,55 @@ def workload_department_delete(request, pk):
         "workload_department_confirm_delete.html",
         {"object": workload, "type": "департамента"},
     )
+
+
+@login_required
+@user_passes_test(is_director_or_admin)
+def employee_loadtype_matrix(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    if request.method == "POST":
+        form = EmployeeDisciplineLoadTypeForm(request.POST, employee=employee)
+        if form.is_valid():
+            # Удаляем старые связи
+            EmployeeDisciplineLoadType.objects.filter(employee=employee).delete()
+            # Добавляем новые
+            for discipline in form.disciplines:
+                for load_type in form.load_types:
+                    field_name = f"disc_{discipline.id}_lt_{load_type.id}"
+                    if form.cleaned_data.get(field_name):
+                        EmployeeDisciplineLoadType.objects.create(
+                            employee=employee,
+                            discipline=discipline,
+                            load_type=load_type,
+                        )
+            messages.success(request, "Сохранено!")
+            return redirect("employee_detail", pk=employee.pk)
+    else:
+        form = EmployeeDisciplineLoadTypeForm(employee=employee)
+    return render(request, "employee_loadtype_matrix.html", {"form": form, "employee": employee})
+
+
+@login_required
+def employee_loadtype_matrix_wish(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    if request.method == "POST":
+        form = EmployeeDisciplineLoadTypeWishForm(request.POST, employee=employee)
+        if form.is_valid():
+            EmployeeDisciplineLoadTypeWish.objects.filter(employee=employee).delete()
+            for discipline in form.disciplines:
+                for load_type in form.load_types:
+                    field_name = f"disc_{discipline.id}_lt_{load_type.id}"
+                    if form.cleaned_data.get(field_name):
+                        EmployeeDisciplineLoadTypeWish.objects.create(
+                            employee=employee,
+                            discipline=discipline,
+                            load_type=load_type,
+                        )
+            messages.success(request, "Сохранено!")
+            return redirect("employee_detail", pk=employee.pk)
+    else:
+        form = EmployeeDisciplineLoadTypeWishForm(employee=employee)
+    return render(request, "employee_loadtype_matrix_wish.html", {"form": form, "employee": employee})
 
 
 class DegreeViewSet(viewsets.ModelViewSet):

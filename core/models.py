@@ -142,3 +142,21 @@ class Department(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class EmployeeDisciplineLoadType(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    discipline = models.ForeignKey(Discipline, on_delete=models.CASCADE)
+    load_type = models.ForeignKey(LoadType, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('employee', 'discipline', 'load_type')
+
+
+class EmployeeDisciplineLoadTypeWish(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    discipline = models.ForeignKey(Discipline, on_delete=models.CASCADE)
+    load_type = models.ForeignKey(LoadType, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('employee', 'discipline', 'load_type')
