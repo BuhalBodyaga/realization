@@ -30,23 +30,25 @@ class EmployeeForm(forms.ModelForm):
             "post": forms.Select(attrs={"class": "form-select"}),
             "rate": forms.Select(attrs={"class": "form-select"}),
             "disciplines": forms.SelectMultiple(attrs={"class": "form-select"}),
-            "main_discipline": forms.Select(attrs={"class": "form-select"}),
+            "main_discipline": forms.SelectMultiple(attrs={"class": "form-select"}),
         }
         labels = {
             "disciplines": "Дисциплины",
             "main_discipline": "Основная дисциплина",
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        disciplines = cleaned_data.get("disciplines")
-        main_discipline = cleaned_data.get("main_discipline")
-        if main_discipline and disciplines and main_discipline not in disciplines.all():
-            self.add_error(
-                "main_discipline",
-                "Основная дисциплина должна быть выбрана среди дисциплин, которые может вести преподаватель.",
-            )
-        return cleaned_data
+        def clean(self):
+            cleaned_data = super().clean()
+            disciplines = cleaned_data.get("disciplines")
+            main_discipline = cleaned_data.get("main_discipline")
+            if main_discipline and disciplines:
+                for md in main_discipline.all():
+                    if md not in disciplines.all():
+                        self.add_error(
+                            "main_discipline",
+                            "Основная дисциплина должна быть выбрана среди дисциплин, которые может вести преподаватель.",
+                        )
+            return cleaned_data
 
 
 class DisciplineForm(forms.ModelForm):

@@ -320,97 +320,90 @@ def workload_delete(request, pk):
         return redirect("workload_list")
     return render(request, "workload_confirm_delete.html", {"workload": workload})
 
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 def workload_department_list(request):
-    workload_departments = WorkloadDepartment.objects.select_related(
-        "workload", "subgroups"
-    )
-
-    report = []
-
+    semester = int(request.GET.get("semester", 1))
     disciplines = Discipline.objects.all()
+    groups = Group.objects.all()
+    subgroups = Subgroup.objects.all()
 
-    for discipline in disciplines:
-        total_hours_department = (
-            WorkloadDepartment.objects.filter(
-                workload__disciplines=discipline
-            ).aggregate(Sum("hours"))["hours__sum"]
-            or 0
-        )
+    # Получаем выбранную дисциплину из GET или POST
+    selected_discipline_id = request.GET.get("discipline") or request.POST.get("discipline")
+    selected_load_type_id = request.POST.get("load_type") if request.method == "POST" else None
 
-        total_hours_teachers = (
-            WorkloadTeacher.objects.filter(workload__disciplines=discipline).aggregate(
-                Sum("hours")
-            )["hours__sum"]
-            or 0
-        )
+    # Фильтруем типы нагрузки только для выбранной дисциплины
+    if selected_discipline_id:
+        load_types = LoadType.objects.filter(
+            workload__disciplines_id=selected_discipline_id,
+            workload__semesters__number=semester
+        ).distinct()
+    else:
+        load_types = LoadType.objects.none()
 
-        remaining_hours = total_hours_department - total_hours_teachers
+    # --- Обработка добавления нагрузки ---
+    if request.method == "POST":
+        hours = request.POST.get("hours")
+        group_id = request.POST.get("group")
+        subgroup_id = request.POST.get("subgroup")
 
-        details = []
-        for wd in WorkloadDepartment.objects.filter(workload__disciplines=discipline):
-            teachers = WorkloadTeacher.objects.filter(
-                workload=wd.workload, subgroups=wd.subgroups
+        if selected_discipline_id and selected_load_type_id and hours and group_id and subgroup_id:
+            discipline = Discipline.objects.get(pk=selected_discipline_id)
+            load_type = LoadType.objects.get(pk=selected_load_type_id)
+            group = Group.objects.get(pk=group_id)
+            subgroup = Subgroup.objects.get(pk=subgroup_id)
+            semester_obj = Semester.objects.get(number=semester)
+            workload, created = Workload.objects.get_or_create(
+                disciplines=discipline,
+                semesters=semester_obj,
+                groups=group,
             )
-            teachers_info = [
-                {
-                    "employee": t.employees,
-                    "hours": t.hours,
-                }
-                for t in teachers
-            ]
-            assigned_hours = sum(t["hours"] for t in teachers_info)
-            not_assigned = wd.hours - assigned_hours
+            workload.load_types.add(load_type)
+            workload.save()
 
-            discipline_type = wd.workload.disciplines.types_of_discipline
-
-            recommended = []
-            for emp in Employee.objects.all():
-                if emp.disciplines.filter(types_of_discipline=discipline_type).exists():
-                    total = (
-                        WorkloadTeacher.objects.filter(employees=emp).aggregate(
-                            Sum("hours")
-                        )["hours__sum"]
-                        or 0
-                    )
-                    allowed = emp.rate.rate_value * 900
-                    free = allowed - total
-                    if free > 0:
-                        recommended.append(
-                            {
-                                "employee": emp,
-                                "free_hours": free,
-                            }
-                        )
-
-            details.append(
-                {
-                    "wd": wd,
-                    "teachers_info": teachers_info,
-                    "not_assigned": not_assigned,
-                    "recommended": recommended,
-                }
+            # --- Новый блок: ищем существующую запись ---
+            wd, created = WorkloadDepartment.objects.get_or_create(
+                workload=workload,
+                subgroups=subgroup,
+                load_type=load_type,
+                defaults={"hours": int(hours)},
             )
+            if not created:
+                wd.hours += int(hours)
+                wd.save()
+                messages.success(request, "Часы добавлены к существующей записи!")
+            else:
+                messages.success(request, "Нагрузка добавлена!")
+            return redirect(request.path + f"?semester={semester}&discipline={selected_discipline_id}")
 
-        if total_hours_department > 0:
-            report.append(
-                {
-                    "discipline": discipline.name_of_discipline,
-                    "total_hours_department": total_hours_department,
-                    "total_hours_teachers": total_hours_teachers,
-                    "remaining_hours": remaining_hours,
-                    "details": details,
-                }
-            )
+    # --- Формирование отчёта для таблицы ---
+    workloads = WorkloadDepartment.objects.filter(workload__semesters__number=semester)
+    report = []
+    for wd in workloads:
+        total_hours_teachers = WorkloadTeacher.objects.filter(
+            workload=wd.workload, subgroups=wd.subgroups, workload__load_types=wd.load_type
+        ).aggregate(Sum("hours"))["hours__sum"] or 0
+        report.append({
+            "discipline": wd.workload.disciplines.name_of_discipline,
+            "load_type": wd.load_type.type,
+            "group": wd.workload.groups.name,
+            "subgroup": wd.subgroups.number,
+            "total_hours_department": wd.hours,
+            "total_hours_teachers": total_hours_teachers,
+            "remaining_hours": wd.hours - total_hours_teachers,
+        })
 
-    return render(
-        request,
-        "workload_department_list.html",
-        {
-            "workload_departments": workload_departments,
-            "report": report,
-        },
-    )
+    return render(request, "workload_department_list.html", {
+        "report": report,
+        "semester": semester,
+        "disciplines": disciplines,
+        "load_types": load_types,
+        "groups": groups,
+        "subgroups": subgroups,
+        "selected_discipline_id": selected_discipline_id,
+        "selected_load_type_id": selected_load_type_id,
+    })
 
 
 def workload_department_detail(request, pk):

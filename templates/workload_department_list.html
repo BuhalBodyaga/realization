@@ -2,97 +2,89 @@
 
 {% block content %}
   <div class="container mt-4">
-    {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
-      <a href="{% url 'workload_department_create' %}" class="btn btn-primary mb-3">Добавить дисциплину</a>
-    {% endif %}
+    <div class="mb-3">
+      <a href="?semester=1" class="btn btn-outline-primary {% if semester|default:1 == 1 %}active{% endif %}">1 семестр</a>
+      <a href="?semester=2" class="btn btn-outline-primary {% if semester == 2 %}active{% endif %}">2 семестр</a>
+    </div>
 
     <h2>Нагрузка на департамент</h2>
+    <form method="get" class="row g-3 mb-4">
+      <div class="col-md-3">
+        <select name="discipline" class="form-select" required onchange="this.form.submit()">
+          <option value="">Выберите дисциплину</option>
+          {% for d in disciplines %}
+            <option value="{{ d.pk }}" {% if d.pk|stringformat:"s" == selected_discipline_id %}selected{% endif %}>{{ d.name_of_discipline }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <input type="hidden" name="semester" value="{{ semester }}">
+    </form>
 
-    <h4>Отчет по дисциплинам</h4>
-    <table class="table table-bordered" id="department-table">
+    <form method="post" class="row g-3 mb-4">
+      {% csrf_token %}
+      <input type="hidden" name="discipline" value="{{ selected_discipline_id }}">
+      <input type="hidden" name="semester" value="{{ semester }}">
+      <div class="col-md-3">
+        <select name="load_type" class="form-select" required>
+          <option value="">Тип нагрузки</option>
+          {% for lt in load_types %}
+            <option value="{{ lt.pk }}" {% if lt.pk|stringformat:"s" == selected_load_type_id %}selected{% endif %}>{{ lt.type }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select name="group" class="form-select" required>
+          <option value="">Группа</option>
+          {% for g in groups %}
+            <option value="{{ g.pk }}">{{ g.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select name="subgroup" class="form-select" required>
+          <option value="">Подгруппа</option>
+          {% for sg in subgroups %}
+            <option value="{{ sg.pk }}">Подгруппа {{ sg.number }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <input type="number" name="hours" class="form-control" min="1" placeholder="Часы" required>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-success w-100">Добавить</button>
+      </div>
+    </form>
+
+    <table class="table table-bordered">
       <thead class="table-dark">
         <tr>
           <th>Дисциплина</th>
-          <th>Выделено часов</th>
-          <th>Распределено часов</th>
-          <th>Осталось распределить</th>
+          <th>Тип нагрузки</th>
+          <th>Группа</th>
+          <th>Подгруппа</th>
+          <th>Всего часов</th>
+          <th>Распределено</th>
+          <th>Не распределено</th>
         </tr>
       </thead>
       <tbody>
-        {% for item in report %}
-          <tr class="table-row" data-index="{{ forloop.counter0 }}" style="cursor:pointer;">
-            <td>{{ item.discipline }}</td>
-            <td>{{ item.total_hours_department }}</td>
-            <td>{{ item.total_hours_teachers }}</td>
-            <td>{{ item.remaining_hours }}</td>
-          </tr>
-          <tr class="details-row" id="details-{{ forloop.counter0 }}" style="display:none;">
-            <td colspan="4">
-              {% for d in item.details %}
-                <div class="mb-2">
-                  <strong>Группа:</strong> {{ d.wd.workload.groups }} /
-                  <strong>Семестр:</strong> {{ d.wd.workload.semesters }} /
-                  <strong>Тип нагрузки:</strong> {{ d.wd.workload.load_types }} /
-                  <strong>Подгруппа:</strong> {{ d.wd.subgroups }} /
-                  <strong>Всего часов:</strong> {{ d.wd.hours }}
-                  <div class="mb-2">
-                    <a href="{% url 'workload_department_update' d.wd.id %}" class="btn btn-sm btn-warning">Редактировать</a>
-                    <a href="{% url 'workload_department_delete' d.wd.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Вы уверены, что хотите удалить эту нагрузку на департамент?');">Удалить</a>
-                  </div>
-                  <ul>
-                    {% for t in d.teachers_info %}
-                      <li>
-                        <span class="badge bg-success">{{ t.employee }}</span> — {{ t.hours }} ч.
-                      </li>
-                    {% empty %}
-                      <li>
-                        <em>Пока не распределено</em>
-                      </li>
-                    {% endfor %}
-                  </ul>
-                  {% if d.not_assigned > 0 %}
-                    <div class="alert alert-warning p-2">
-                      <strong>Нераспределено:</strong> {{ d.not_assigned }} ч.<br />
-                      <strong>Рекомендованные преподаватели:</strong>
-                      <ul>
-                        {% for rec in d.recommended %}
-                          <li>
-                            <a href="{% url 'workload_teacher_create' %}?employee_id={{ rec.employee.id }}&workload_id={{ d.wd.workload.id }}&subgroup_id={{ d.wd.subgroups.id }}&max_hours={{ rec.free_hours }}&not_assigned={{ d.not_assigned }}" class="btn btn-sm btn-outline-info mb-1">{{ rec.employee }} (свободно {{ rec.free_hours }} ч.)</a>
-                          </li>
-                        {% empty %}
-                          <li>
-                            <em>Нет подходящих преподавателей</em>
-                          </li>
-                        {% endfor %}
-                      </ul>
-                    </div>
-                  {% endif %}
-                </div>
-                <hr />
-              {% endfor %}
-            </td>
+        {% for row in report %}
+          <tr>
+            <td>{{ row.discipline }}</td>
+            <td>{{ row.load_type }}</td>
+            <td>{{ row.group }}</td>
+            <td>{{ row.subgroup }}</td>
+            <td>{{ row.total_hours_department }}</td>
+            <td>{{ row.total_hours_teachers }}</td>
+            <td>{{ row.remaining_hours }}</td>
           </tr>
         {% empty %}
           <tr>
-            <td colspan="4">Нет данных</td>
+            <td colspan="7">Нет данных</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      document.querySelectorAll('.table-row').forEach(function (row) {
-        row.addEventListener('click', function () {
-          var idx = row.getAttribute('data-index')
-          var details = document.getElementById('details-' + idx)
-          if (details.style.display === 'none') {
-            details.style.display = ''
-          } else {
-            details.style.display = 'none'
-          }
-        })
-      })
-    })
-  </script>
 {% endblock %}

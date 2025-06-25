@@ -30,11 +30,15 @@
         {% endfor %}
       </li>
       <li class="list-group-item">
-        <strong>Основная дисциплина:</strong>
-        {% if employee.main_discipline %}
-          <span class="badge bg-primary text-light">{{ employee.main_discipline.name_of_discipline }}</span>
+        <strong>Основные дисциплины:</strong>
+        {% if employee.main_discipline.all %}
+          {% for d in employee.main_discipline.all %}
+            <span class="badge bg-primary text-light">{{ d.name_of_discipline }}</span>
+          {% empty %}
+            <em>не указаны</em>
+          {% endfor %}
         {% else %}
-          <em>не указана</em>
+          <em>не указаны</em>
         {% endif %}
       </li>
     </ul>
@@ -42,7 +46,6 @@
     <p>groups: {% for group in user.groups.all %}{{ group.name }} {% endfor %}</p>
 
     {% if user.is_superuser %}
-      <a href="{% url 'employee_loadtype_matrix_wish' %}" class="btn btn-info mb-2">Мои желаемые типы нагрузок</a>
       <a href="{% url 'employee_loadtype_matrix' employee.pk %}" class="btn btn-info mb-2">Типы нагрузок по дисциплинам</a>
       <a href="{% url 'employee_update' employee.pk %}" class="btn btn-warning">Редактировать</a>
       <a href="{% url 'employee_delete' employee.pk %}" class="btn btn-danger">Удалить</a>

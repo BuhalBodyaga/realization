@@ -96,6 +96,5 @@ urlpatterns = [
         name="logout",
     ),
     path("employees/<int:pk>/loadtype_matrix/", views.employee_loadtype_matrix, name="employee_loadtype_matrix"),
-    path("employees/loadtype_matrix_wish/", views.employee_loadtype_matrix_wish, name="employee_loadtype_matrix_wish"),
     path('employees/loadtype_matrix_wish/<int:pk>/', views.employee_loadtype_matrix_wish, name='employee_loadtype_matrix_wish'),
 ]

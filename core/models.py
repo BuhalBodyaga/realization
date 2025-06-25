@@ -55,10 +55,8 @@ class Employee(models.Model):
         blank=True,
         verbose_name="Дисциплины, которые может вести",
     )
-    main_discipline = models.ForeignKey(
+    main_discipline = models.ManyToManyField(
         "Discipline",
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
         related_name="main_employees",
         verbose_name="Основная дисциплина",
@@ -126,10 +124,10 @@ class WorkloadTeacher(models.Model):
 
 
 class WorkloadDepartment(models.Model):
+    workload = models.ForeignKey(Workload, on_delete=models.CASCADE)
     hours = models.IntegerField()
     subgroups = models.ForeignKey(Subgroup, on_delete=models.CASCADE)
-    workload = models.ForeignKey(Workload, on_delete=models.CASCADE)
-
+    load_type = models.ForeignKey(LoadType, on_delete=models.CASCADE)
     def __str__(self):
         return f"Кафедра — {self.workload} ({self.hours} ч.)"
 
