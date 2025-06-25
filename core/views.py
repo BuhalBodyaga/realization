@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.urls import reverse
 from rest_framework import viewsets
+
+from core.distribution_logic import distribute_for_instance
 from .models import *
 from .serializers import *
 from .models import Employee
@@ -382,7 +385,9 @@ def workload_department_list(request):
     report = []
     for wd in workloads:
         total_hours_teachers = WorkloadTeacher.objects.filter(
-            workload=wd.workload, subgroups=wd.subgroups, workload__load_types=wd.load_type
+            workload=wd.workload,
+            subgroups=wd.subgroups,
+            load_type=wd.load_type,  # исправлено!
         ).aggregate(Sum("hours"))["hours__sum"] or 0
         report.append({
             "discipline": wd.workload.disciplines.name_of_discipline,
@@ -495,6 +500,18 @@ def employee_loadtype_matrix_wish(request, pk):
     else:
         form = EmployeeDisciplineLoadTypeWishForm(employee=employee)
     return render(request, "employee_loadtype_matrix_wish.html", {"form": form, "employee": employee})
+
+
+def distribute_department_load(request):
+    if request.method == "POST":
+        semester = int(request.GET.get("semester", 1))
+        wds = WorkloadDepartment.objects.filter(workload__semesters__number=semester)
+        count = 0
+        for wd in wds:
+            distribute_for_instance(wd)
+            count += 1
+        messages.success(request, f"Распределение выполнено для {count} записей семестра {semester}!")
+    return redirect(f"{reverse('workload_department_list')}?semester={semester}")
 
 
 class DegreeViewSet(viewsets.ModelViewSet):

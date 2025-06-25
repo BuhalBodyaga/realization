@@ -14,7 +14,7 @@
       <li class="list-group-item">
         <a href="{% url 'workload_teacher_detail' wt.pk %}">
           {{ wt.employees.surname }} {{ wt.employees.first_name }} –
-          {{ wt.workload.disciplines.name_of_discipline }} ({{ wt.workload.load_types.type }}) —
+          {{ wt.workload.disciplines.name_of_discipline }} ({{ wt.load_type }}) —
           {{ wt.workload.groups.name }} / {{ wt.workload.semesters.number }}, подгруппа: {{ wt.subgroups }}, часы: {{ wt.hours }}
         </a>
       </li>

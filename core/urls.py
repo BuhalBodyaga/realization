@@ -97,4 +97,6 @@ urlpatterns = [
     ),
     path("employees/<int:pk>/loadtype_matrix/", views.employee_loadtype_matrix, name="employee_loadtype_matrix"),
     path('employees/loadtype_matrix_wish/<int:pk>/', views.employee_loadtype_matrix_wish, name='employee_loadtype_matrix_wish'),
+    path("workload_department/distribute/", views.distribute_department_load, name="distribute_department_load"),
+
 ]

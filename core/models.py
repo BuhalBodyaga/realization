@@ -118,6 +118,7 @@ class WorkloadTeacher(models.Model):
     subgroups = models.ForeignKey(Subgroup, on_delete=models.CASCADE)
     workload = models.ForeignKey(Workload, on_delete=models.CASCADE)
     employees = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    load_type = models.ForeignKey(LoadType, on_delete=models.CASCADE)  # <-- добавить это поле
 
     def __str__(self):
         return f"{self.employees} ({self.hours} ч.)"
