@@ -1,13 +1,14 @@
-from .models import WorkloadTeacher, Employee
+from .models import EmployeeDisciplineLoadType, WorkloadTeacher, Employee
 from django.db.models import Sum
 
 NORM_HOURS_FULL_RATE = 900
 
-def can_employee_teach_loadtype(employee, load_type):
-    # Пример: ассистент не может вести лекции
-    if employee.post.type.lower() == "ассистент" and load_type.type.lower() == "лекция":
-        return False
-    return True
+def can_employee_teach_loadtype(employee, load_type, discipline):
+    return EmployeeDisciplineLoadType.objects.filter(
+        employee=employee,
+        discipline=discipline,
+        load_type=load_type
+    ).exists()
 
 def suggest_employees_for_unassigned(discipline, load_type):
     suitable = []
@@ -36,7 +37,6 @@ def distribute_for_instance(wd):
         print("⛔ Нечего распределять, все часы уже распределены.")
         return
 
-    # Кандидаты (основные + остальные)
     main_employees = Employee.objects.filter(main_discipline=discipline, disciplines=discipline)
     other_employees = Employee.objects.filter(disciplines=discipline).exclude(
         pk__in=[e.pk for e in main_employees]
@@ -44,7 +44,7 @@ def distribute_for_instance(wd):
     candidates = list(main_employees) + list(other_employees)
 
     for employee in candidates:
-        if not can_employee_teach_loadtype(employee, load_type):
+        if not can_employee_teach_loadtype(employee, load_type, discipline):
             continue
 
         assigned_to_teacher = (

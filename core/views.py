@@ -12,7 +12,11 @@ from .models import Workload
 from .models import WorkloadTeacher
 from .models import WorkloadDepartment
 from django.shortcuts import get_object_or_404
-from .forms import EmployeeDisciplineLoadTypeForm, EmployeeDisciplineLoadTypeWishForm, EmployeeForm
+from .forms import (
+    EmployeeDisciplineLoadTypeForm,
+    EmployeeDisciplineLoadTypeWishForm,
+    EmployeeForm,
+)
 from .forms import DisciplineForm
 from .forms import WorkloadForm
 from .forms import WorkloadTeacherForm
@@ -102,7 +106,7 @@ def workload_teacher_list(request):
     return render(
         request,
         "workload_teacher_list.html",
-        {"workload_teachers": workload_teachers, "semester": semester}
+        {"workload_teachers": workload_teachers, "semester": semester},
     )
 
 
@@ -162,7 +166,7 @@ def workload_teacher_delete(request, pk):
 
 
 def employee_list(request):
-    employees = Employee.objects.all().order_by('surname', 'first_name', 'second_name')
+    employees = Employee.objects.all().order_by("surname", "first_name", "second_name")
     return render(request, "employee_list.html", {"employees": employees})
 
 
@@ -212,7 +216,7 @@ def employee_delete(request, pk):
 
 
 def discipline_list(request):
-    disciplines = Discipline.objects.all().order_by('name_of_discipline')
+    disciplines = Discipline.objects.all().order_by("name_of_discipline")
     return render(request, "discipline_list.html", {"disciplines": disciplines})
 
 
@@ -263,11 +267,17 @@ def discipline_delete(request, pk):
 
 def workload_list(request):
     semester = int(request.GET.get("semester", 1))
-    workloads = Workload.objects.filter(semesters__number=semester)
-    return render(request, "workload_list.html", {
-        "workloads": workloads,
-        "semester": semester,
-    })
+    workloads = Workload.objects.filter(semesters__number=semester).order_by(
+        "groups__name", "disciplines__name_of_discipline"
+    )
+    return render(
+        request,
+        "workload_list.html",
+        {
+            "workloads": workloads,
+            "semester": semester,
+        },
+    )
 
 
 def workload_detail(request, pk):
@@ -281,14 +291,17 @@ def workload_detail(request, pk):
             return redirect("workload_detail", pk=pk)
     else:
         form = WorkloadForm(instance=workload)
-    # Для отображения количества подгрупп:
     group = workload.groups
     count_subgroups = (group.count_people // 15) + (1 if group.count_people % 15 else 0)
-    return render(request, "workload_detail.html", {
-        "workload": workload,
-        "form": form,
-        "count_subgroups": count_subgroups,
-    })
+    return render(
+        request,
+        "workload_detail.html",
+        {
+            "workload": workload,
+            "form": form,
+            "count_subgroups": count_subgroups,
+        },
+    )
 
 
 @login_required
@@ -330,35 +343,44 @@ def workload_delete(request, pk):
         return redirect("workload_list")
     return render(request, "workload_confirm_delete.html", {"workload": workload})
 
+
 from django.views.decorators.csrf import csrf_exempt
+
 
 @csrf_exempt
 def workload_department_list(request):
     semester = int(request.GET.get("semester", 1))
-    disciplines = Discipline.objects.all()
+    disciplines = Discipline.objects.all().order_by("name_of_discipline")
     groups = Group.objects.all()
     subgroups = Subgroup.objects.all()
 
-    # Получаем выбранную дисциплину из GET или POST
-    selected_discipline_id = request.GET.get("discipline") or request.POST.get("discipline")
-    selected_load_type_id = request.POST.get("load_type") if request.method == "POST" else None
+    selected_discipline_id = request.GET.get("discipline") or request.POST.get(
+        "discipline"
+    )
+    selected_load_type_id = (
+        request.POST.get("load_type") if request.method == "POST" else None
+    )
 
-    # Фильтруем типы нагрузки только для выбранной дисциплины
     if selected_discipline_id:
         load_types = LoadType.objects.filter(
             workload__disciplines_id=selected_discipline_id,
-            workload__semesters__number=semester
+            workload__semesters__number=semester,
         ).distinct()
     else:
         load_types = LoadType.objects.none()
 
-    # --- Обработка добавления нагрузки ---
     if request.method == "POST":
         hours = request.POST.get("hours")
         group_id = request.POST.get("group")
         subgroup_id = request.POST.get("subgroup")
 
-        if selected_discipline_id and selected_load_type_id and hours and group_id and subgroup_id:
+        if (
+            selected_discipline_id
+            and selected_load_type_id
+            and hours
+            and group_id
+            and subgroup_id
+        ):
             discipline = Discipline.objects.get(pk=selected_discipline_id)
             load_type = LoadType.objects.get(pk=selected_load_type_id)
             group = Group.objects.get(pk=group_id)
@@ -372,7 +394,6 @@ def workload_department_list(request):
             workload.load_types.add(load_type)
             workload.save()
 
-            # --- Новый блок: ищем существующую запись ---
             wd, created = WorkloadDepartment.objects.get_or_create(
                 workload=workload,
                 subgroups=subgroup,
@@ -385,37 +406,48 @@ def workload_department_list(request):
                 messages.success(request, "Часы добавлены к существующей записи!")
             else:
                 messages.success(request, "Нагрузка добавлена!")
-            return redirect(request.path + f"?semester={semester}&discipline={selected_discipline_id}")
+            return redirect(
+                request.path
+                + f"?semester={semester}&discipline={selected_discipline_id}"
+            )
 
-    # --- Формирование отчёта для таблицы ---
     workloads = WorkloadDepartment.objects.filter(workload__semesters__number=semester)
     report = []
     for wd in workloads:
-        total_hours_teachers = WorkloadTeacher.objects.filter(
-            workload=wd.workload,
-            subgroups=wd.subgroups,
-            load_type=wd.load_type,  # исправлено!
-        ).aggregate(Sum("hours"))["hours__sum"] or 0
-        report.append({
-            "discipline": wd.workload.disciplines.name_of_discipline,
-            "load_type": wd.load_type.type,
-            "group": wd.workload.groups.name,
-            "subgroup": wd.subgroups.number,
-            "total_hours_department": wd.hours,
-            "total_hours_teachers": total_hours_teachers,
-            "remaining_hours": wd.hours - total_hours_teachers,
-        })
+        total_hours_teachers = (
+            WorkloadTeacher.objects.filter(
+                workload=wd.workload,
+                subgroups=wd.subgroups,
+                load_type=wd.load_type,
+            ).aggregate(Sum("hours"))["hours__sum"]
+            or 0
+        )
+        report.append(
+            {
+                "discipline": wd.workload.disciplines.name_of_discipline,
+                "load_type": wd.load_type.type,
+                "group": wd.workload.groups.name,
+                "subgroup": wd.subgroups.number,
+                "total_hours_department": wd.hours,
+                "total_hours_teachers": total_hours_teachers,
+                "remaining_hours": wd.hours - total_hours_teachers,
+            }
+        )
 
-    return render(request, "workload_department_list.html", {
-        "report": report,
-        "semester": semester,
-        "disciplines": disciplines,
-        "load_types": load_types,
-        "groups": groups,
-        "subgroups": subgroups,
-        "selected_discipline_id": selected_discipline_id,
-        "selected_load_type_id": selected_load_type_id,
-    })
+    return render(
+        request,
+        "workload_department_list.html",
+        {
+            "report": report,
+            "semester": semester,
+            "disciplines": disciplines,
+            "load_types": load_types,
+            "groups": groups,
+            "subgroups": subgroups,
+            "selected_discipline_id": selected_discipline_id,
+            "selected_load_type_id": selected_load_type_id,
+        },
+    )
 
 
 def workload_department_detail(request, pk):
@@ -467,9 +499,7 @@ def employee_loadtype_matrix(request, pk):
     if request.method == "POST":
         form = EmployeeDisciplineLoadTypeForm(request.POST, employee=employee)
         if form.is_valid():
-            # Удаляем старые связи
             EmployeeDisciplineLoadType.objects.filter(employee=employee).delete()
-            # Добавляем новые
             for discipline in form.disciplines:
                 for load_type in form.load_types:
                     field_name = f"disc_{discipline.id}_lt_{load_type.id}"
@@ -483,7 +513,9 @@ def employee_loadtype_matrix(request, pk):
             return redirect("employee_detail", pk=employee.pk)
     else:
         form = EmployeeDisciplineLoadTypeForm(employee=employee)
-    return render(request, "employee_loadtype_matrix.html", {"form": form, "employee": employee})
+    return render(
+        request, "employee_loadtype_matrix.html", {"form": form, "employee": employee}
+    )
 
 
 @login_required
@@ -506,7 +538,11 @@ def employee_loadtype_matrix_wish(request, pk):
             return redirect("employee_detail", pk=employee.pk)
     else:
         form = EmployeeDisciplineLoadTypeWishForm(employee=employee)
-    return render(request, "employee_loadtype_matrix_wish.html", {"form": form, "employee": employee})
+    return render(
+        request,
+        "employee_loadtype_matrix_wish.html",
+        {"form": form, "employee": employee},
+    )
 
 
 def distribute_department_load(request):
@@ -517,7 +553,9 @@ def distribute_department_load(request):
         for wd in wds:
             distribute_for_instance(wd)
             count += 1
-        messages.success(request, f"Распределение выполнено для {count} записей семестра {semester}!")
+        messages.success(
+            request, f"Распределение выполнено для {count} записей семестра {semester}!"
+        )
     return redirect(f"{reverse('workload_department_list')}?semester={semester}")
 
 
