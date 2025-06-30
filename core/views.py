@@ -95,11 +95,14 @@ def workload_teacher_detail(request, pk):
 
 @login_required
 def workload_teacher_list(request):
+    semester = int(request.GET.get("semester", 1))
     workload_teachers = WorkloadTeacher.objects.select_related(
         "employees", "workload", "subgroups"
-    )
+    ).filter(workload__semesters__number=semester)
     return render(
-        request, "workload_teacher_list.html", {"workload_teachers": workload_teachers}
+        request,
+        "workload_teacher_list.html",
+        {"workload_teachers": workload_teachers, "semester": semester}
     )
 
 
@@ -159,7 +162,7 @@ def workload_teacher_delete(request, pk):
 
 
 def employee_list(request):
-    employees = Employee.objects.all()
+    employees = Employee.objects.all().order_by('surname', 'first_name', 'second_name')
     return render(request, "employee_list.html", {"employees": employees})
 
 
@@ -209,7 +212,7 @@ def employee_delete(request, pk):
 
 
 def discipline_list(request):
-    disciplines = Discipline.objects.all()
+    disciplines = Discipline.objects.all().order_by('name_of_discipline')
     return render(request, "discipline_list.html", {"disciplines": disciplines})
 
 
@@ -259,8 +262,12 @@ def discipline_delete(request, pk):
 
 
 def workload_list(request):
-    workloads = Workload.objects.all()
-    return render(request, "workload_list.html", {"workloads": workloads})
+    semester = int(request.GET.get("semester", 1))
+    workloads = Workload.objects.filter(semesters__number=semester)
+    return render(request, "workload_list.html", {
+        "workloads": workloads,
+        "semester": semester,
+    })
 
 
 def workload_detail(request, pk):

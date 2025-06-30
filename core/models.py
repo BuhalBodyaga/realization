@@ -41,7 +41,7 @@ class Employee(models.Model):
     second_name = models.CharField("Отчество", max_length=100, null=True, blank=True)
     surname = models.CharField("Фамилия", max_length=100, null=True, blank=True)
     rank = models.ForeignKey(
-        Rank, verbose_name="Ранг", on_delete=models.CASCADE, null=True, blank=True
+        Rank, verbose_name="Звание", on_delete=models.CASCADE, null=True, blank=True
     )
     degree = models.ForeignKey(
         Degree, verbose_name="Степень", on_delete=models.CASCADE, null=True, blank=True

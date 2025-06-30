@@ -5,6 +5,10 @@
 {% endblock %}
 
 {% block content %}
+  <div class="mb-3">
+    <a href="?semester=1" class="btn btn-outline-primary {% if semester|default:1 == 1 %}active{% endif %}">1 семестр</a>
+    <a href="?semester=2" class="btn btn-outline-primary {% if semester == 2 %}active{% endif %}">2 семестр</a>
+  </div>
   {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
     <a href="{% url 'workload_teacher_create' %}" class="btn btn-primary mb-3">Добавить распределение</a>
   {% endif %}
