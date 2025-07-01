@@ -371,7 +371,9 @@ from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 def workload_department_list(request):
     semester = int(request.GET.get("semester", 1))
-    disciplines = Discipline.objects.all().order_by("name_of_discipline")
+    disciplines = Discipline.objects.filter(
+        workload__semesters__number=semester
+    ).distinct().order_by("name_of_discipline")
     groups = Group.objects.all()
     subgroups = Subgroup.objects.all()
 

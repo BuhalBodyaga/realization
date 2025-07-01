@@ -1,7 +1,7 @@
 from .models import EmployeeDisciplineLoadType, WorkloadTeacher, Employee
 from django.db.models import Sum
 
-NORM_HOURS_FULL_RATE = 900
+NORM_HOURS_FULL_RATE = 450
 
 def can_employee_teach_loadtype(employee, load_type, discipline):
     return EmployeeDisciplineLoadType.objects.filter(
@@ -22,6 +22,7 @@ def distribute_for_instance(wd):
     discipline = workload.disciplines
     subgroup = wd.subgroups
     load_type = wd.load_type
+    semester = workload.semesters
 
     total_department_hours = wd.hours
     assigned_hours = (
@@ -48,7 +49,10 @@ def distribute_for_instance(wd):
             continue
 
         assigned_to_teacher = (
-            WorkloadTeacher.objects.filter(employees=employee).aggregate(Sum("hours"))["hours__sum"] or 0
+            WorkloadTeacher.objects.filter(
+                employees=employee,
+                workload__semesters=semester
+            ).aggregate(Sum("hours"))["hours__sum"] or 0
         )
         allowed = employee.rate.rate_value * NORM_HOURS_FULL_RATE
         free_for_teacher = allowed - assigned_to_teacher

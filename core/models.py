@@ -37,9 +37,9 @@ class DisciplineType(models.Model):
 
 
 class Employee(models.Model):
-    first_name = models.CharField("Имя", max_length=100, null=True, blank=True)
-    second_name = models.CharField("Отчество", max_length=100, null=True, blank=True)
-    surname = models.CharField("Фамилия", max_length=100, null=True, blank=True)
+    first_name = models.CharField("Имя", max_length=100)
+    second_name = models.CharField("Отчество", max_length=100)
+    surname = models.CharField("Фамилия", max_length=100)
     rank = models.ForeignKey(
         Rank, verbose_name="Звание", on_delete=models.CASCADE, null=True, blank=True
     )

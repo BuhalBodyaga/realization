@@ -19,6 +19,7 @@
         <th>Группа</th>
         <th>Подгруппа</th>
         <th>Часы</th>
+        <th>Действия</th> <!-- Новый столбец -->
       </tr>
     </thead>
     <tbody>
@@ -29,10 +30,14 @@
           <td>{{ wt.workload.groups.name }}</td>
           <td>{{ wt.subgroups.number }}</td>
           <td>{{ wt.hours }}</td>
+          <td>
+            <a href="{% url 'workload_teacher_update' wt.id %}" class="btn btn-sm btn-warning">Редактировать</a>
+            <a href="{% url 'workload_teacher_delete' wt.id %}" class="btn btn-sm btn-danger">Удалить</a>
+          </td>
         </tr>
       {% empty %}
         <tr>
-          <td colspan="5">Нет нагрузки</td>
+          <td colspan="6">Нет нагрузки</td>
         </tr>
       {% endfor %}
     </tbody>
