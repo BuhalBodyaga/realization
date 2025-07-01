@@ -110,7 +110,6 @@ def clean(self):
         discipline = workload.disciplines
         discipline_type = discipline.types_of_discipline
 
-        # Проверка: может ли вести дисциплину этого типа
         if not employee.disciplines.filter(
             types_of_discipline=discipline_type
         ).exists():
@@ -168,7 +167,6 @@ class WorkloadDepartmentForm(forms.ModelForm):
         employee = cleaned_data.get("employees")
 
         if workload and subgroups and hours and employee:
-            # Проверка по департаменту
             department_hours = (
                 WorkloadDepartment.objects.filter(
                     workload=workload, subgroups=subgroups
@@ -188,14 +186,11 @@ class WorkloadDepartmentForm(forms.ModelForm):
                     f"Нельзя назначить {hours} часов: уже распределено {teacher_hours_existing} из {department_hours} доступных часов."
                 )
 
-            # Проверка по ставке преподавателя
-            rate = employee.rate.rate_value  # 1.0, 0.75, 0.5
+            rate = employee.rate.rate_value
 
-            # Например: 1.0 ставка = 450 часов в полгода (примерный норматив)
             base_hours = 450
             allowed_hours = rate * base_hours
 
-            # Считаем всю нагрузку преподавателя
             all_teacher_hours = (
                 WorkloadTeacher.objects.filter(employees=employee).aggregate(
                     Sum("hours")

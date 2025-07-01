@@ -1,4 +1,4 @@
 /.mypy_cache
 /db.sqlite3
 /venv
-kadry/settings.py
+.env
