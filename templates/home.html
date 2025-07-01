@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <div class="container mt-4">
+  {% comment %} <div class="container mt-4">
     <h1>Добро пожаловать в систему управления нагрузкой ВУЗа!</h1>
 
     <div class="mt-4">
@@ -10,5 +10,5 @@
       <a href="{% url 'workload_teacher_list' %}" class="btn btn-outline-success mb-2">Распределение нагрузки</a>
       <a href="{% url 'workload_department_list' %}" class="btn btn-outline-warning mb-2">Нагрузка на департамент</a>
     </div>
-  </div>
+  </div> {% endcomment %}
 {% endblock %}

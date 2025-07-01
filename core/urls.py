@@ -40,12 +40,7 @@ urlpatterns = [
     path("workloads/add/", workload_create, name="workload_create"),
     path("workloads/<int:pk>/edit/", workload_update, name="workload_update"),
     path("workloads/<int:pk>/delete/", workload_delete, name="workload_delete"),
-    path("workload_teacher/", workload_teacher_list, name="workload_teacher_list"),
-    path(
-        "workload_teacher/<int:pk>/",
-        workload_teacher_detail,
-        name="workload_teacher_detail",
-    ),
+    path("workload_teacher/", views.workload_teacher_list, name="workload_teacher_list"),    path("workload_teacher/<int:employee_id>/", views.workload_teacher_detail, name="workload_teacher_detail"),
     path(
         "workload_teacher/create/",
         workload_teacher_create,
@@ -98,5 +93,7 @@ urlpatterns = [
     path("employees/<int:pk>/loadtype_matrix/", views.employee_loadtype_matrix, name="employee_loadtype_matrix"),
     path('employees/loadtype_matrix_wish/<int:pk>/', views.employee_loadtype_matrix_wish, name='employee_loadtype_matrix_wish'),
     path("workload_department/distribute/", views.distribute_department_load, name="distribute_department_load"),
+
+
 
 ]

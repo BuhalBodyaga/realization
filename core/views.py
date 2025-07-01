@@ -92,21 +92,42 @@ def get_available_hours(request):
     return JsonResponse({"available_hours": available_hours})
 
 
-def workload_teacher_detail(request, pk):
-    obj = get_object_or_404(WorkloadTeacher, pk=pk)
-    return render(request, "workload_teacher_detail.html", {"workload_teacher": obj})
+@login_required
+def workload_teacher_detail(request, employee_id):
+    semester = int(request.GET.get("semester", 1))
+    employee = get_object_or_404(Employee, pk=employee_id)
+    workload_teachers = WorkloadTeacher.objects.select_related(
+        "workload", "subgroups", "load_type"
+    ).filter(
+        employees=employee,
+        workload__semesters__number=semester
+    ).order_by(
+        "workload__disciplines__name_of_discipline",
+        "workload__groups__name",
+        "subgroups__number",
+        "load_type__type"
+    )
+    return render(
+        request,
+        "workload_teacher_detail.html",
+        {
+            "employee": employee,
+            "workload_teachers": workload_teachers,
+            "semester": semester,
+        },
+    )
 
 
 @login_required
 def workload_teacher_list(request):
     semester = int(request.GET.get("semester", 1))
-    workload_teachers = WorkloadTeacher.objects.select_related(
-        "employees", "workload", "subgroups"
-    ).filter(workload__semesters__number=semester)
+    employees = Employee.objects.filter(
+        workloadteacher__workload__semesters__number=semester
+    ).distinct().order_by("surname", "first_name")
     return render(
         request,
         "workload_teacher_list.html",
-        {"workload_teachers": workload_teachers, "semester": semester},
+        {"employees": employees, "semester": semester},
     )
 
 

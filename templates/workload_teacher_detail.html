@@ -1,40 +1,58 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  Распределение нагрузки
+  Нагрузка для {{ employee }}
 {% endblock %}
 
 {% block content %}
-  {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
-    <a href="{% url 'workload_teacher_update' workload_teacher.pk %}" class="btn btn-warning">Редактировать</a>
-    <a href="{% url 'workload_teacher_delete' workload_teacher.pk %}" class="btn btn-danger">Удалить</a>
-  {% endif %}
-
-  <h1>Распределение нагрузки</h1>
-
-  <ul class="list-group mb-3">
-    <li class="list-group-item">
-      <strong>Преподаватель:</strong> {{ workload_teacher.employees }}
-    </li>
-    <li class="list-group-item">
-      <strong>Дисциплина:</strong> {{ workload_teacher.workload.disciplines.name_of_discipline }}
-    </li>
-    <li class="list-group-item">
-      <strong>Тип нагрузки:</strong> {{ workload_teacher.load_type }}
-    </li>
-    <li class="list-group-item">
-      <strong>Группа:</strong> {{ workload_teacher.workload.groups.name }}
-    </li>
-    <li class="list-group-item">
-      <strong>Семестр:</strong> {{ workload_teacher.workload.semesters.number }}
-    </li>
-    <li class="list-group-item">
-      <strong>Подгруппа:</strong> {{ workload_teacher.subgroups }}
-    </li>
-    <li class="list-group-item">
-      <strong>Часы:</strong> {{ workload_teacher.hours }}
-    </li>
-  </ul>
-
-  <a class="btn btn-secondary" href="{% url 'workload_teacher_list' %}">← Назад к списку распределения</a>
+  <div class="mb-3">
+    <a href="?semester=1" class="btn btn-outline-primary {% if semester|default:1 == 1 %}active{% endif %}">1 семестр</a>
+    <a href="?semester=2" class="btn btn-outline-primary {% if semester == 2 %}active{% endif %}">2 семестр</a>
+    <a href="{% url 'workload_teacher_list' %}?semester={{ semester }}" class="btn btn-secondary">← К списку преподавателей</a>
+  </div>
+  <h2>Нагрузка для {{ employee.surname }} {{ employee.first_name }} {{ employee.second_name }}</h2>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Дисциплина</th>
+        <th>Тип нагрузки</th>
+        <th>Группа</th>
+        <th>Подгруппа</th>
+        <th>Часы</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for wt in workload_teachers %}
+        <tr>
+          <td>{{ wt.workload.disciplines.name_of_discipline }}</td>
+          <td>{{ wt.load_type.type }}</td>
+          <td>{{ wt.workload.groups.name }}</td>
+          <td>{{ wt.subgroups.number }}</td>
+          <td>{{ wt.hours }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5">Нет нагрузки</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const hoursCells = document.querySelectorAll('tbody td:nth-child(5)')
+      let total = 0
+      hoursCells.forEach((cell) => {
+        const hours = parseFloat(cell.textContent) || 0
+        total += hours
+      })
+      const tfoot = document.createElement('tfoot')
+      tfoot.innerHTML = `
+          <tr>
+            <td colspan="4" class="text-end"><strong>Итого часов:</strong></td>
+            <td><strong>${total}</strong></td>
+          </tr>
+        `
+      document.querySelector('table').appendChild(tfoot)
+    })
+  </script>
 {% endblock %}
