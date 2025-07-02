@@ -8,54 +8,55 @@
     </div>
 
     <h2>Нагрузка на департамент</h2>
-    <form method="get" class="row g-3 mb-4">
-      <div class="col-md-3">
-        <select name="discipline" class="form-select" required onchange="this.form.submit()">
-          <option value="">Выберите дисциплину</option>
-          {% for d in disciplines %}
-            <option value="{{ d.pk }}" {% if d.pk|stringformat:"s" == selected_discipline_id %}selected{% endif %}>{{ d.name_of_discipline }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <input type="hidden" name="semester" value="{{ semester }}">
-    </form>
+    {% if user.groups.all.0.name == 'Директор департамента' or user.is_superuser %}
+      <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+          <select name="discipline" class="form-select" required onchange="this.form.submit()">
+            <option value="">Выберите дисциплину</option>
+            {% for d in disciplines %}
+              <option value="{{ d.pk }}" {% if d.pk|stringformat:"s" == selected_discipline_id %}selected{% endif %}>{{ d.name_of_discipline }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <input type="hidden" name="semester" value="{{ semester }}">
+      </form>
 
-    <form method="post" class="row g-3 mb-4">
-      {% csrf_token %}
-      <input type="hidden" name="discipline" value="{{ selected_discipline_id }}">
-      <input type="hidden" name="semester" value="{{ semester }}">
-      <div class="col-md-3">
-        <select name="load_type" class="form-select" required>
-          <option value="">Тип нагрузки</option>
-          {% for lt in load_types %}
-            <option value="{{ lt.pk }}" {% if lt.pk|stringformat:"s" == selected_load_type_id %}selected{% endif %}>{{ lt.type }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-3">
-        <select name="group" class="form-select" required>
-          <option value="">Группа</option>
-          {% for g in groups %}
-            <option value="{{ g.pk }}">{{ g.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-3">
-        <select name="subgroup" class="form-select" required>
-          <option value="">Подгруппа</option>
-          {% for sg in subgroups %}
-            <option value="{{ sg.pk }}">Подгруппа {{ sg.number }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-2">
-        <input type="number" name="hours" class="form-control" min="1" placeholder="Часы" required>
-      </div>
-      <div class="col-md-2">
-        <button type="submit" class="btn btn-success w-100">Добавить</button>
-      </div>
-    </form>
-
+      <form method="post" class="row g-3 mb-4">
+        {% csrf_token %}
+        <input type="hidden" name="discipline" value="{{ selected_discipline_id }}">
+        <input type="hidden" name="semester" value="{{ semester }}">
+        <div class="col-md-3">
+          <select name="load_type" class="form-select" required>
+            <option value="">Тип нагрузки</option>
+            {% for lt in load_types %}
+              <option value="{{ lt.pk }}" {% if lt.pk|stringformat:"s" == selected_load_type_id %}selected{% endif %}>{{ lt.type }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select name="group" class="form-select" required>
+            <option value="">Группа</option>
+            {% for g in groups %}
+              <option value="{{ g.pk }}">{{ g.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select name="subgroup" class="form-select" required>
+            <option value="">Подгруппа</option>
+            {% for sg in subgroups %}
+              <option value="{{ sg.pk }}">Подгруппа {{ sg.number }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <input type="number" name="hours" class="form-control" min="1" placeholder="Часы" required>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-success w-100">Добавить</button>
+        </div>
+      </form>
+    {% endif %}
     <table class="table table-bordered">
       <thead class="table-dark">
         <tr>
